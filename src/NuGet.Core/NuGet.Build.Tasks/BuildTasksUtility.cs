@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -39,6 +39,16 @@ namespace NuGet.Build.Tasks
             {
                 spec.AddRestore(project.RestoreMetadata.ProjectUniqueName);
             }
+        }
+
+        /// <summary>
+        /// Add all non-restorable projects to the list to allow us to log a warning for non restorable projects.
+        /// </summary>
+        public static string[] GetAllNonRestorableProjects(DependencyGraphSpec spec)
+        {
+            return spec.Projects
+                .Where(project => !RestorableTypes.Contains(project.RestoreMetadata.ProjectStyle))
+                .Select(e => e.Name).ToArray();
         }
 
         public static void CopyPropertyIfExists(ITaskItem item, IDictionary<string, string> properties, string key)

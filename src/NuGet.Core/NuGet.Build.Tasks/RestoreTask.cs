@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -167,6 +168,17 @@ namespace NuGet.Build.Tasks
                 if (RestoreRecursive)
                 {
                     BuildTasksUtility.AddAllProjectsForRestore(dgFile);
+                }
+
+                if (!RestoreRecursive) // If all projects are being restored, warn for the packages.config projects. 
+                {
+                    var nonRestorableProjects = BuildTasksUtility.GetAllNonRestorableProjects(dgFile);
+                    if (nonRestorableProjects.Length > 0)
+                    {
+                        log.LogVerbose(string.Format(CultureInfo.CurrentCulture,
+                            Strings.Log_UnrestorableProjectTypes,
+                            string.Join(", ", nonRestorableProjects)));
+                    }
                 }
 
                 providers.Add(new DependencyGraphSpecRequestProvider(providerCache, dgFile));

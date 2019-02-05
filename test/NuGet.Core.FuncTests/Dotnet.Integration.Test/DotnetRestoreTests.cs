@@ -76,6 +76,46 @@ EndGlobal";
             }
         }
 
+
+        [PlatformFact(Platform.Windows)]
+        public void DotnetRestore_WarnsForNonRestoreableProjects()
+        {
+            // TODO NK: Add test with 3 projects, 2 restore based and 1 non PR based.
+
+            using (var packageSourceDirectory = TestDirectory.Create())
+            using (var testDirectory = TestDirectory.Create())
+            {
+                var projectName = "ClassLibrary1";
+                var workingDirectory = Path.Combine(testDirectory, projectName);
+                var projectFile = Path.Combine(workingDirectory, $"{projectName}.csproj");
+
+                _msbuildFixture.CreateDotnetNewProject(testDirectory.Path, projectName, " classlib");
+
+                using (var stream = File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
+                {
+                    var xml = XDocument.Load(stream);
+
+                    ProjectFileUtils.SetTargetFrameworkForProject(xml, "TargetFrameworks", "netstandard1.3");
+
+                    var attributes = new Dictionary<string, string>() { { "Version", "1.0.0" } };
+
+                    ProjectFileUtils.AddItem(
+                        xml,
+                        "PackageReference",
+                        "TestPackage.AuthorSigned",
+                        "netstandard1.3",
+                        new Dictionary<string, string>(),
+                        attributes);
+
+                    ProjectFileUtils.WriteXmlToFile(xml, stream);
+                }
+
+                var args = $"--source \"{packageSourceDirectory.Path}\" ";
+
+                _msbuildFixture.RestoreProject(workingDirectory, projectName, args);
+            }
+        }
+
         [PlatformFact(Platform.Windows)]
         public void DotnetRestore_WithAuthorSignedPackage_Succeeds()
         {

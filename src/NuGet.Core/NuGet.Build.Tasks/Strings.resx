@@ -123,6 +123,9 @@
 1 - resolved tfm
 2 - project tfm</comment>
   </data>
+  <data name="Log_UnrestorableProjectTypes" xml:space="preserve">
+    <value>Unable to restore the following projects as they are either packages.config based or not NuGet configured.</value>
+  </data>
   <data name="NoCompatibleTargetFramework" xml:space="preserve">
     <value>Project '{0}' targets '{2}'. It cannot be referenced by a project that targets '{1}'.</value>
   </data>
