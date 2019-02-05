@@ -108,7 +108,7 @@ namespace NuGet.Commands
             // Remove references to projects that could not be read by restore.
             RemoveMissingProjects(graphSpec);
 
-            // Add valid projects to restore section
+            // Add valid projects to restore section // TODO NK - The invalid project list is whatever does not have a restore spec.
             foreach (var projectUniqueName in restoreSpecs.Intersect(validForRestore))
             {
                 graphSpec.AddRestore(projectUniqueName);

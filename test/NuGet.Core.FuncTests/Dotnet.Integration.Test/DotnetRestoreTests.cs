@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using FluentAssertions;
 using NuGet.Common;
@@ -78,41 +79,101 @@ EndGlobal";
 
 
         [PlatformFact(Platform.Windows)]
-        public void DotnetRestore_WarnsForNonRestoreableProjects()
+        public async Task DotnetRestore_WarnsForNonRestoreableProjects()
         {
-            // TODO NK: Add test with 3 projects, 2 restore based and 1 non PR based.
-
-            using (var packageSourceDirectory = TestDirectory.Create())
-            using (var testDirectory = TestDirectory.Create())
+            using (var pathContext = new SimpleTestPathContext())
             {
-                var projectName = "ClassLibrary1";
-                var workingDirectory = Path.Combine(testDirectory, projectName);
-                var projectFile = Path.Combine(workingDirectory, $"{projectName}.csproj");
+                var testDirectory = pathContext.SolutionRoot;
+                var pkgX = new SimpleTestPackageContext("x", "1.0.0");
+                await SimpleTestPackageUtility.CreatePackagesAsync(pathContext.PackageSource, pkgX);
+                
+                var projectName1 = "ClassLibrary1";
+                var workingDirectory1 = Path.Combine(testDirectory, projectName1);
+                var projectFile1 = Path.Combine(workingDirectory1, $"{projectName1}.csproj");
+                _msbuildFixture.CreateDotnetNewProject(testDirectory, projectName1, " classlib");
+                SetupProject(projectFile1);
 
-                _msbuildFixture.CreateDotnetNewProject(testDirectory.Path, projectName, " classlib");
+                var projectName2 = "ClassLibrary2";
+                var workingDirectory2 = Path.Combine(testDirectory, projectName2);
+                var projectFile2 = Path.Combine(workingDirectory2, $"{projectName2}.csproj");
+                _msbuildFixture.CreateDotnetNewProject(testDirectory, projectName2, " classlib");
+                SetupProject(projectFile2);
 
-                using (var stream = File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
+                var projectName3 = "ClassLibrary3";
+                var workingDirectory3 = Path.Combine(testDirectory, projectName3);
+                var projectFile3 = Path.Combine(workingDirectory3, $"{projectName3}.csproj");
+                _msbuildFixture.CreateDotnetNewProject(testDirectory, projectName3, " classlib");
+                SetupProject(projectFile3, noneProjectStyle: true);
+
+                var slnContents = @"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27330.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project(""{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"") = ""ClassLibrary1"", ""ClassLibrary1\ClassLibrary1.csproj"", ""{216FF388-8C16-4AF4-87A8-9094030692FA}""
+EndProject
+Project(""{9A19103F-16F7-4668-BE54-9A1E7A4F7557}"") = ""ClassLibrary2"", ""ClassLibrary2\ClassLibrary2.csproj"", ""{216FF388-8C16-4AF4-87A8-9094030692FA}""
+EndProject
+Project(""{9A19103F-16F7-4668-BE54-9A1E7A4F7558}"") = ""ClassLibrary3"", ""ClassLibrary3\ClassLibrary3.csproj"", ""{216FF388-8C16-4AF4-87A8-9094030692FA}""
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{216FF388-8C16-4AF4-87A8-9094030692FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{216FF388-8C16-4AF4-87A8-9094030692FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{216FF388-8C16-4AF4-87A8-9094030692FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{216FF388-8C16-4AF4-87A8-9094030692FA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A6704E2-6E77-4FF4-9E54-B789D88829DD}
+	EndGlobalSection
+EndGlobal";
+
+                var slnPath = Path.Combine(pathContext.SolutionRoot, "proj.sln");
+                File.WriteAllText(slnPath, slnContents);
+
+                var args = $"--source \"{pathContext.PackageSource}\" /v:d";
+
+                var result = _msbuildFixture.RunDotnet(pathContext.SolutionRoot, $"restore proj.sln {args}", ignoreExitCode: true);
+
+                Assert.True(result.Item1 == 0);
+
+                // Assert the packages config projects are logged.
+            }
+        }
+
+        private static void SetupProject(string projectFile, bool addPackageReference = true, bool noneProjectStyle = false)
+        {
+            using (var stream = File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
+            {
+                var xml = XDocument.Load(stream);
+
+                if (noneProjectStyle)
                 {
-                    var xml = XDocument.Load(stream);
+                    ProjectFileUtils.AddProperty(xml, "RestoreProjectStyle", "none");
+                }
 
-                    ProjectFileUtils.SetTargetFrameworkForProject(xml, "TargetFrameworks", "netstandard1.3");
+                ProjectFileUtils.SetTargetFrameworkForProject(xml, "TargetFrameworks", "net45");
 
-                    var attributes = new Dictionary<string, string>() { { "Version", "1.0.0" } };
+                var attributes = new Dictionary<string, string>() { { "Version", "1.0.0" } };
 
+                if (addPackageReference)
+                {
                     ProjectFileUtils.AddItem(
                         xml,
                         "PackageReference",
-                        "TestPackage.AuthorSigned",
+                        "x",
                         "netstandard1.3",
                         new Dictionary<string, string>(),
                         attributes);
-
-                    ProjectFileUtils.WriteXmlToFile(xml, stream);
                 }
-
-                var args = $"--source \"{packageSourceDirectory.Path}\" ";
-
-                _msbuildFixture.RestoreProject(workingDirectory, projectName, args);
+                ProjectFileUtils.WriteXmlToFile(xml, stream);
             }
         }
 

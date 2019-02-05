@@ -170,7 +170,7 @@ namespace NuGet.Build.Tasks
                     BuildTasksUtility.AddAllProjectsForRestore(dgFile);
                 }
 
-                if (!RestoreRecursive) // If all projects are being restored, warn for the packages.config projects. 
+                if (RestoreRecursive) // If all projects are being restored, warn for the packages.config projects. 
                 {
                     var nonRestorableProjects = BuildTasksUtility.GetAllNonRestorableProjects(dgFile);
                     if (nonRestorableProjects.Length > 0)
