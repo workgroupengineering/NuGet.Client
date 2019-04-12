@@ -679,8 +679,8 @@ namespace NuGet.CommandLine.Test
                 Assert.True(r.Item1 == 0, "Output is " + r.Item2 + ". Error is " + r.Item3);
 
                 var content = File.ReadAllText(projectFile);
-                Assert.False(content.Contains(Util.GetHintPath(Path.Combine("packages", "A."+oldVersion.ToString(), "lib", "net45", "file.dll"))));
-                Assert.True(content.Contains(Util.GetHintPath(Path.Combine("packages", "A."+newVersion.ToString(), "lib", "net45", "file.dll"))));
+                Assert.False(content.Contains(Util.GetHintPath(Path.Combine("packages", "A." + oldVersion.ToString(), "lib", "net45", "file.dll"))));
+                Assert.True(content.Contains(Util.GetHintPath(Path.Combine("packages", "A." + newVersion.ToString(), "lib", "net45", "file.dll"))));
             }
         }
 
@@ -1536,6 +1536,123 @@ namespace NuGet.CommandLine.Test
 
                 Assert.True(r.Item1 == 0, "Output is " + r.Item2 + ". Error is " + r.Item3);
             }
+        }
+
+        [Fact]
+        public async Task UpdateCommand_DependencyResolution_Success()
+        {
+            // Test variations
+            // dependencyVersion, expected version
+            string[,] variations =
+            {
+                {null,       "2.0.0" },
+                {"Lowest",       "1.0.0" },
+                {"Highest",      "2.0.0" },
+                {"HighestMinor", "1.2.0" },
+                {"HighestPatch", "1.0.1" }
+            };
+            for (int i = 0; i < variations.GetLength(0); i++)
+            {
+                using (var packagesSourceDirectory = TestDirectory.Create())
+                using (var solutionDirectory = TestDirectory.Create())
+                using (var workingPath = TestDirectory.Create())
+                {
+                    var projectDirectory = Path.Combine(solutionDirectory, "proj1");
+                    var packagesDirectory = Path.Combine(solutionDirectory, "packages");
+
+                    // version installed will be the 1.0.0
+                    var a1 = new PackageIdentity("A", new NuGetVersion("1.1.0"));
+
+                    var nugetFramework = NuGetFramework.Parse("net45");
+                    var a1Package = Util.CreateTestPackage(a1.Id, a1.Version.ToString(), packagesSourceDirectory, new List<NuGetFramework>() { nugetFramework }, new List<PackageDependencyGroup>()
+                    {
+                        new PackageDependencyGroup(nugetFramework,new List<Packaging.Core.PackageDependency>(){new Packaging.Core.PackageDependency("dep",new VersionRange(new NuGetVersion("1.0.0")))})
+                    });
+
+                    var a2 = new PackageIdentity("A", new NuGetVersion("2.0.0"));
+                    var a2Package = Util.CreateTestPackage(a1.Id, a1.Version.ToString(), packagesSourceDirectory, new List<NuGetFramework>() { nugetFramework }, new List<PackageDependencyGroup>()                     {
+                        new PackageDependencyGroup(nugetFramework,new List<Packaging.Core.PackageDependency>(){new Packaging.Core.PackageDependency("dep",new VersionRange(new NuGetVersion("1.0.0")))})
+                    });
+
+
+                    Util.CreateTestPackage("dep", "1.0.0", packagesSourceDirectory, new List<NuGetFramework>() { nugetFramework }, new List<PackageDependencyGroup>() { });
+                    Util.CreateTestPackage("dep", "1.0.1", packagesSourceDirectory, new List<NuGetFramework>() { nugetFramework }, new List<PackageDependencyGroup>() { });
+                    Util.CreateTestPackage("dep", "1.2.0", packagesSourceDirectory, new List<NuGetFramework>() { nugetFramework }, new List<PackageDependencyGroup>() { });
+                    Util.CreateTestPackage("dep", "2.0.0", packagesSourceDirectory, new List<NuGetFramework>() { nugetFramework }, new List<PackageDependencyGroup>() { });
+
+
+                    Directory.CreateDirectory(projectDirectory);
+                    // create project 1
+                    Util.CreateFile(
+                        projectDirectory,
+                        "proj1.csproj",
+                        Util.CreateProjFileContent());
+
+                    Util.CreateFile(solutionDirectory, "a.sln",
+                        Util.CreateSolutionFileContent());
+
+                    var projectFile = Path.Combine(projectDirectory, "proj1.csproj");
+                    var solutionFile = Path.Combine(solutionDirectory, "a.sln");
+
+                    var testNuGetProjectContext = new TestNuGetProjectContext();
+                    var msbuildDirectory = MsBuildUtility.GetMsBuildToolset(null, null).Path;
+                    var projectSystem =
+                        new MSBuildProjectSystem(msbuildDirectory, projectFile, testNuGetProjectContext);
+                    var msBuildProject = new MSBuildNuGetProject(projectSystem, packagesDirectory, projectDirectory);
+                    using (var stream = File.OpenRead(a1Package))
+                    {
+                        var downloadResult = new DownloadResourceResult(stream, packagesSourceDirectory);
+                        await msBuildProject.InstallPackageAsync(
+                            a1,
+                            downloadResult,
+                            testNuGetProjectContext,
+                            CancellationToken.None);
+                    }
+
+                    string[] args;
+                    //Test the case where the code is not provided to ensure it  works as expected. (Highest by default)
+                    if (string.IsNullOrEmpty(variations[i, 0]))
+                    {
+                        args= new[]
+                        {
+                            "update",
+                            solutionFile,
+                            "-Source",
+                            packagesSourceDirectory,
+                        };
+                    }
+                    else
+                    {
+                        args = new[]
+                        {
+                            "update",
+                            solutionFile,
+                            "-Source",
+                            packagesSourceDirectory,
+                            "-DependencyVersion",
+                            variations[i,0]
+                        };
+                    }
+
+                    
+
+                    var r = CommandRunner.Run(
+                        Util.GetNuGetExePath(),
+                        workingPath,
+                        string.Join(" ", args),
+                        waitForExit: true);
+
+                    Assert.True(r.Item1 == 0, "Output is " + r.Item2 + ". Error is " + r.Item3);
+
+                    var content = File.ReadAllText(projectFile);
+                    // Assert no error
+                    Assert.Equal(0, r.Item1);
+
+
+                    Assert.True(content.Contains(Util.GetHintPath(Path.Combine("packages", "dep." + variations[i, 1], "lib", "net45", "file.dll"))));
+                }
+            }
+
         }
     }
 }

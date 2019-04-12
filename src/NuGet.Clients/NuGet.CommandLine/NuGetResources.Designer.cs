@@ -3445,6 +3445,15 @@ namespace NuGet.CommandLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid value given for &apos;DependencyVersion&apos;: &quot;{0}&quot;..
+        /// </summary>
+        public static string Error_UnknownDependencyVersion {
+            get {
+                return ResourceManager.GetString("Error_UnknownDependencyVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This version of msbuild is not supported: &apos;{0}&apos;.
         /// </summary>
         public static string Error_UnsupportedMsbuild {
@@ -4881,15 +4890,6 @@ namespace NuGet.CommandLine {
         public static string InstallCommandUnableToFindPackage {
             get {
                 return ResourceManager.GetString("InstallCommandUnableToFindPackage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid value given for &apos;DependencyVersion&apos;: &quot;{0}&quot;..
-        /// </summary>
-        public static string InstallCommandUnknownDependencyVersion {
-            get {
-                return ResourceManager.GetString("InstallCommandUnknownDependencyVersion", resourceCulture);
             }
         }
         

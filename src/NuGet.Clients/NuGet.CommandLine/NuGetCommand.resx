@@ -5526,4 +5526,7 @@ nuget-trusted-signers Remove -Name TrustedRepo</value>
   <data name="TrustedSignersCommandServiceIndexDescription" xml:space="preserve">
     <value>Service index for a repository to be trusted.</value>
   </data>
+  <data name="UpdateCommandDependencyVersion" xml:space="preserve">
+    <value>Overrides the default dependency resolution behavior.</value>
+  </data>
 </root>
