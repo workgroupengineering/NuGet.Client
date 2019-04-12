@@ -1560,7 +1560,7 @@ namespace NuGet.CommandLine.Test
                     var projectDirectory = Path.Combine(solutionDirectory, "proj1");
                     var packagesDirectory = Path.Combine(solutionDirectory, "packages");
 
-                    // version installed will be the 1.0.0
+                    // version installed will be the 1.1.0
                     var a1 = new PackageIdentity("A", new NuGetVersion("1.1.0"));
 
                     var nugetFramework = NuGetFramework.Parse("net45");
