@@ -3820,7 +3820,7 @@ namespace ClassLibrary
                         var properties = new Dictionary<string, string>();
                         if (!frameworkRef.Value)
                         {
-                            attributes["Pack"] = "false";
+                            attributes["PrivateAssets"] = "all";
                         }
                         ProjectFileUtils.AddItem(
                             xml,
@@ -3859,12 +3859,11 @@ namespace ClassLibrary
                         {
                             if (frameworkRef.Value)
                             {
-                                Assert.True(frameworkSpecificGroup?.Items.Contains(frameworkRef.Key));
+                                Assert.True(frameworkSpecificGroup?.FrameworkReferences.Contains(new FrameworkReference(frameworkRef.Key)));
                             }
                             else
                             {
-
-                                Assert.False(frameworkSpecificGroup == null ? false : frameworkSpecificGroup.Items.Contains(frameworkRef.Key));
+                                Assert.False(frameworkSpecificGroup == null ? false : frameworkSpecificGroup.FrameworkReferences.Select(e => e.Name).Contains(frameworkRef.Key));
                             }
                         }
                     }
@@ -3937,9 +3936,34 @@ namespace ClassLibrary
                     var frameworkSpecificGroup = frameworkItems.Where(t => t.TargetFramework.GetShortFolderName().Equals(targetFramework)).FirstOrDefault();
                     var frameworkRef = frameworkReftoPack.First();
 
-                    Assert.True(frameworkSpecificGroup.Items.Contains(frameworkRef.Key));
-                    Assert.Equal(1, frameworkSpecificGroup.Items.Count()); // The framework refs are case insensitive
+                    Assert.True(frameworkSpecificGroup.FrameworkReferences.Contains(new FrameworkReference(frameworkRef.Key)));
+                    Assert.Equal(1, frameworkSpecificGroup.FrameworkReferences.Count()); // The framework refs are case insensitive
                 }
+            }
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public void PackCommand_WithGeneratePackageOnBuildSet_CanPublish()
+        {
+            using (var testDirectory = TestDirectory.Create())
+            {
+                var projectName = "ClassLibrary1";
+                var workingDirectory = Path.Combine(testDirectory, projectName);
+                // Act
+                msbuildFixture.CreateDotnetNewProject(testDirectory.Path, projectName, " console");
+
+                var projectFile = Path.Combine(workingDirectory, $"{projectName}.csproj");
+                using (var stream = new FileStream(projectFile, FileMode.Open, FileAccess.ReadWrite))
+                {
+                    var xml = XDocument.Load(stream);
+                    ProjectFileUtils.AddProperty(xml, "GeneratePackageOnBuild", "true");
+                    ProjectFileUtils.WriteXmlToFile(xml, stream);
+                }
+                // Act
+                var result = msbuildFixture.RunDotnet(workingDirectory, $"publish {projectFile}");
+
+                // Assert
+                Assert.True(result.Success);
             }
         }
     }

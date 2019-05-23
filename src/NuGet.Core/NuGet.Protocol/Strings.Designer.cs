@@ -781,7 +781,7 @@ namespace NuGet.Protocol {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Problem starting the plugin  &apos;{0}&apos;. {1}.
+        ///   Looks up a localized string similar to Problem starting the plugin &apos;{0}&apos;. {1}.
         /// </summary>
         internal static string Plugin_ProblemStartingPlugin {
             get {
@@ -1011,6 +1011,24 @@ namespace NuGet.Protocol {
         internal static string PushCommandPushingPackage {
             get {
                 return ResourceManager.GetString("PushCommandPushingPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to See help for push option to automatically skip duplicates..
+        /// </summary>
+        internal static string PushCommandSkipDuplicateAdvertise {
+            get {
+                return ResourceManager.GetString("PushCommandSkipDuplicateAdvertise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option to skip duplicates is not currently supported for this type of push..
+        /// </summary>
+        internal static string PushCommandSkipDuplicateNotImplemented {
+            get {
+                return ResourceManager.GetString("PushCommandSkipDuplicateNotImplemented", resourceCulture);
             }
         }
         

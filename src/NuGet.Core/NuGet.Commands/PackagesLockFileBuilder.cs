@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using NuGet.Common;
 using NuGet.LibraryModel;
 using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
@@ -73,7 +72,7 @@ namespace NuGet.Commands
                 {
                     var dependency = new LockFileDependency()
                     {
-                        Id = projectReference.Name,
+                        Id = projectReference.Name.ToLowerInvariant(),
                         Dependencies = projectReference.Dependencies,
                         Type = PackageDependencyType.Project
                     };

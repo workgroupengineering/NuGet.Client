@@ -103,7 +103,7 @@ namespace NuGet.CommandLine.XPlat
                     try
                     {
                         DefaultCredentialServiceUtility.SetupDefaultCredentialService(getLogger(), !interactive.HasValue());
-
+                        var skipDuplicate = false;
                         await PushRunner.Run(
                             sourceProvider.Settings,
                             sourceProvider,
@@ -116,6 +116,7 @@ namespace NuGet.CommandLine.XPlat
                             disableBufferingValue,
                             noSymbolsValue,
                             noServiceEndpoint,
+                            skipDuplicate,
                             getLogger());
                     }
                     catch (TaskCanceledException ex)

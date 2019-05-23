@@ -773,7 +773,7 @@ namespace NuGet.Commands {
         
         /// <summary>
         ///   Looks up a localized string similar to usage: NuGet locals &lt;all | http-cache | global-packages | temp | plugins-cache&gt; [--clear | -c | --list | -l]
-        ///For more information, visit http://docs.nuget.org/docs/reference/command-line-reference.
+        ///For more information, visit https://docs.nuget.org/docs/reference/command-line-reference.
         /// </summary>
         internal static string LocalsCommand_Help {
             get {
@@ -994,6 +994,15 @@ namespace NuGet.Commands {
         internal static string Log_LockFileMissingLibraryForTargetLibrary {
             get {
                 return ResourceManager.GetString("Log_LockFileMissingLibraryForTargetLibrary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lock file for {0} at location {1} does not exist, no-op is not possible. Continuing restore..
+        /// </summary>
+        internal static string Log_LockFileNotOnDisk {
+            get {
+                return ResourceManager.GetString("Log_LockFileNotOnDisk", resourceCulture);
             }
         }
         
@@ -1502,7 +1511,7 @@ namespace NuGet.Commands {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://docs.nuget.org/.
+        ///   Looks up a localized string similar to https://docs.nuget.org/.
         /// </summary>
         internal static string NuGetDocs {
             get {
