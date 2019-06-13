@@ -244,9 +244,9 @@ namespace NuGet.CommandLine
             return new CommandLineSourceRepositoryProvider(SourceProvider);
         }
 
-     
 
-    
+
+
 
         private async Task InstallPackageAsync(
             string packageId,
@@ -278,7 +278,7 @@ namespace NuGet.CommandLine
 
             var allowPrerelease = Prerelease || (version != null && version.IsPrerelease);
 
-            var dependencyBehavior = DependencyBehaviorHelper.GetDependencyBehavior(DependencyBehavior.Lowest,DependencyVersion,Settings);
+            var dependencyBehavior = DependencyBehaviorHelper.GetDependencyBehavior(DependencyBehavior.Lowest, DependencyVersion, Settings);
 
             using (var sourceCacheContext = new SourceCacheContext())
             {
