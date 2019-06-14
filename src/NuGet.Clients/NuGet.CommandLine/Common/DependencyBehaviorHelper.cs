@@ -23,9 +23,6 @@ namespace NuGet.CommandLine
 
         public static DependencyBehavior GetDependencyBehavior(DependencyBehavior defaultBehavior, string dependencyVersion, Configuration.ISettings settings)
         {
-            // The default dependency behavior when it's not possible to retrieve the behavior from the parameter dependencyVersion or from the setting.
-            DependencyBehavior dependencyBehavior = defaultBehavior;
-
             // Check to see if dependencyVersion parameter is set. Else check for dependencyVersion in .config.
             if (!string.IsNullOrEmpty(dependencyVersion))
             {
@@ -38,10 +35,10 @@ namespace NuGet.CommandLine
 
             if (!string.IsNullOrEmpty(settingsDependencyVersion))
             {
-                dependencyBehavior = TryGetDependencyBehavior(settingsDependencyVersion);
+                return TryGetDependencyBehavior(settingsDependencyVersion);
             }
 
-            return dependencyBehavior;
+            return defaultBehavior;
         }
     }
 }
