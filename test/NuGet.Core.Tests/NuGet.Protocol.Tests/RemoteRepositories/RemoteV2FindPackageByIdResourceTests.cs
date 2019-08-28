@@ -353,7 +353,7 @@ namespace NuGet.Protocol.Tests
                         })
                     },
                     {
-                        "https://dev.nugettest.org/api/v2/package/xunit/2.2.0-beta1-build3239",
+                        "https://www.nuget.org/api/v2/package/xunit/2.2.0-beta1-build3239",
                         _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
                             Content = new ByteArrayContent(packageBytes)
@@ -411,7 +411,7 @@ namespace NuGet.Protocol.Tests
                         })
                     },
                     {
-                        "https://dev.nugettest.org/api/v2/package/WindowsAzure.Storage/6.2.2-preview",
+                        "https://www.nuget.org/api/v2/package/WindowsAzure.Storage/6.2.2-preview",
                         _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
                             Content = new ByteArrayContent(packageBytes)
