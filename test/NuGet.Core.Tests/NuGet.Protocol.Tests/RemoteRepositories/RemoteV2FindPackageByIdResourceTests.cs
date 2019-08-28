@@ -731,7 +731,7 @@ namespace NuGet.Protocol.Tests
                 var serviceAddress = ProtocolUtility.CreateServiceAddress();
                 var packageIdentity = new PackageIdentity(
                     id: "xunit",
-                    version: NuGetVersion.Parse("2.2.0-beta1-build3239"));
+                    version: NuGetVersion.Parse("2.1.0-beta1-build2945"));
                 var testDirectory = TestDirectory.Create();
                 var packageSource = new PackageSource(serviceAddress);
                 var package = await SimpleTestPackageUtility.CreateFullPackageAsync(
@@ -770,7 +770,7 @@ namespace NuGet.Protocol.Tests
                         })
                     },
                     {
-                        "https://dev.nugettest.org/api/v2/package/xunit/2.2.0-beta1-build3239",
+                        "https://www.nuget.org/api/v2/package/xunit/2.1.0-beta1-build2945",
                         request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
                             Content = new ByteArrayContent(packageBytes)
