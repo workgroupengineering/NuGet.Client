@@ -35,7 +35,7 @@ namespace NuGet.PackageManagement.Test
 
                 var sources = new[]
                 {
-                    Repository.Factory.GetVisualStudio(new PackageSource("https://www.nuget.org/api/v2/"))
+                    Repository.Factory.GetVisualStudio(new PackageSource("https://dev.nugettest.org/api/v2/"))
                 };
 
                 var targetFramework = NuGetFramework.Parse("net46");

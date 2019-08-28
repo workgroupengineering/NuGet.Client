@@ -297,7 +297,7 @@ namespace NuGet.CommandLine.Test
             {
                 testInfo.Init();
 
-                var invalidNupkgFilePath = "http://www.nuget.org/api/v2/package/EntityFramework/5.0.0";
+                var invalidNupkgFilePath = "http://dev.nugettest.org/api/v2/package/EntityFramework/5.0.0";
                 var args = new string[]
                 {
                     "add",

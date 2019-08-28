@@ -21,18 +21,18 @@ namespace NuGet.Core.FuncTest
         public async Task V2FeedParser_DownloadFromUrl()
         {
             // Arrange
-            var repo = Repository.Factory.GetCoreV3("https://www.nuget.org/api/v2/");
+            var repo = Repository.Factory.GetCoreV3("https://dev.nugettest.org/api/v2/");
 
             var httpSource = HttpSource.Create(repo);
 
-            var parser = new V2FeedParser(httpSource, "https://www.nuget.org/api/v2/");
+            var parser = new V2FeedParser(httpSource, "https://wwdev.nugettest.org/api/v2w.nuget.org/api/v2/");
 
             // Act & Assert
             using (var packagesFolder = TestDirectory.Create())
             using (var cacheContext = new SourceCacheContext())
             using (var downloadResult = await parser.DownloadFromUrl(
                 new PackageIdentity("WindowsAzure.Storage", new NuGetVersion("6.2.0")),
-                new Uri("https://www.nuget.org/api/v2/package/WindowsAzure.Storage/6.2.0"),
+                new Uri("https://dev.nugettest.org/api/v2/package/WindowsAzure.Storage/6.2.0"),
                 new PackageDownloadContext(cacheContext),
                 packagesFolder,
                 NullLogger.Instance,

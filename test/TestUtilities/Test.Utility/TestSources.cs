@@ -9,7 +9,7 @@ namespace NuGet.Test.Utility
     public static class TestSources
     {
         public const string ConfigFile = "NuGet.Core.FuncTests.Config";
-        public const string NuGetV2Uri = @"https://www.nuget.org/api/v2";
+        public const string NuGetV2Uri = @"https://dev.nugettest.org/api/v2";
 
         public const string Artifactory = nameof(Artifactory);
         public const string Klondike = nameof(Klondike);

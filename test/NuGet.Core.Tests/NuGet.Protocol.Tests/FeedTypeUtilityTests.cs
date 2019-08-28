@@ -15,7 +15,7 @@ namespace NuGet.Protocol.Tests
         [Theory]
         [InlineData("https://www.nuget.org/api/v2/")]
         [InlineData("https://www.nuget.org/api/v2")]
-        [InlineData("http://www.nuget.org/api/v2/")]
+        [InlineData("http://dev.nugettest.org/api/v2/")]
         [InlineData("http://nuget.org")]
         [InlineData("http://")]
         [InlineData("http://nuget.org/index.xml")]

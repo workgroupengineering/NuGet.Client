@@ -1691,7 +1691,7 @@ namespace NuGet.Commands.FuncTest
             // Arrange
             var sources = new List<PackageSource>
             {
-                new PackageSource("https://www.nuget.org/api/v2")
+                new PackageSource("https://dev.nugettest.org/api/v2")
             };
 
             using (var packagesDir = TestDirectory.Create())

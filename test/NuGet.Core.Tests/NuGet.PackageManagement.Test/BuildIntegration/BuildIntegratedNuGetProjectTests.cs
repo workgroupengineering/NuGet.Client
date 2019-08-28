@@ -317,7 +317,7 @@ namespace NuGet.PackageManagement.Test
 
                 var sources = new List<SourceRepository>
                 {
-                    Repository.Factory.GetVisualStudio("https://www.nuget.org/api/v2/")
+                    Repository.Factory.GetVisualStudio("https://dev.nugettest.org/api/v2/")
                 };
 
                 var projectTargetFramework = NuGetFramework.Parse("uap10.0");
@@ -477,7 +477,7 @@ namespace NuGet.PackageManagement.Test
 
                 var sources = new List<SourceRepository>
                 {
-                    Repository.Factory.GetVisualStudio("https://www.nuget.org/api/v2/")
+                    Repository.Factory.GetVisualStudio("https://dev.nugettest.org/api/v2/")
                 };
 
                 var projectTargetFramework = NuGetFramework.Parse("uap10.0");

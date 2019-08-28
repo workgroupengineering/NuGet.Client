@@ -135,7 +135,7 @@ namespace NuGet.Configuration
 <configuration>
     <packageSources>
         <add key='Contoso Package Source' value='http://contoso.com/packages/' />
-        <add key='NuGet Official Feed' value='http://www.nuget.org/api/v2/' />
+        <add key='NuGet Official Feed' value='http://dev.nugettest.org/api/v2/' />
     </packageSources>
     <disabledPackageSources>
         <add key='NuGet Official Feed' value='true' />
@@ -195,7 +195,7 @@ namespace NuGet.Configuration
                 var config = @"
 <configuration>
     <packageSources>
-        <add key='v2' value='http://www.nuget.org/api/v2/' />
+        <add key='v2' value='http://dev.nugettest.org/api/v2/' />
     </packageSources>
 </configuration>";
 
@@ -234,7 +234,7 @@ namespace NuGet.Configuration
                 var config = @"
 <configuration>
     <packageSources>
-        <add key='Contoso Package Source' value='http://www.nuget.org/api/v2/' />
+        <add key='Contoso Package Source' value='http://dev.nugettest.org/api/v2/' />
     </packageSources>
 </configuration>";
 
@@ -254,7 +254,7 @@ namespace NuGet.Configuration
                 // Assert
                 Assert.Equal(1, packageSources.Count());
                 Assert.Equal("Contoso Package Source", packageSources[0].Name);
-                Assert.Equal("http://www.nuget.org/api/v2/", packageSources[0].Source);
+                Assert.Equal("http://dev.nugettest.org/api/v2/", packageSources[0].Source);
             }
         }
 
@@ -344,7 +344,7 @@ namespace NuGet.Configuration
         private ConfigurationDefaults GetConfigurationDefaults(string configurationDefaultsContent, TestDirectory mockBaseDirectory)
         {
             var configurationDefaultsPath = "NuGetDefaults.config";
-      
+
             File.WriteAllText(Path.Combine(mockBaseDirectory, configurationDefaultsPath), configurationDefaultsContent);
             return new ConfigurationDefaults(mockBaseDirectory, configurationDefaultsPath);
         }
