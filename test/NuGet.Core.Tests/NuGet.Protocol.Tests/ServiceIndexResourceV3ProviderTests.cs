@@ -41,8 +41,8 @@ namespace NuGet.Protocol.Tests
         }
 
         [Theory]
-        [InlineData("https://www.nuget.org/api/v2")]
-        [InlineData("https://www.nuget.org/api/v2.json/")]
+        [InlineData("https://dev.nugettest.org/api/v2")]
+        [InlineData("https://dev.nugettest.org/api/v2.json/")]
         public async Task TryCreate_ReturnsFalse_IfSourceDoesNotHaveAJsonSuffix(string location)
         {
             // Arrange

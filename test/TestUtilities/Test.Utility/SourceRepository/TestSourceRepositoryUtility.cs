@@ -15,7 +15,7 @@ namespace Test.Utility
 {
     public class TestSourceRepositoryUtility
     {
-        public static PackageSource V2PackageSource = new PackageSource("https://www.nuget.org/api/v2/", "v2");
+        public static PackageSource V2PackageSource = new PackageSource("https://dev.nugettest.org/api/v2/", "v2");
         public static PackageSource V3PackageSource = new PackageSource("https://api.nuget.org/v3/index.json", "v3");
 
         public IEnumerable<Lazy<INuGetResourceProvider>> ResourceProviders { get; private set; }

@@ -13,8 +13,8 @@ namespace NuGet.Protocol.Tests
     public class FeedTypeUtilityTests
     {
         [Theory]
-        [InlineData("https://www.nuget.org/api/v2/")]
-        [InlineData("https://www.nuget.org/api/v2")]
+        [InlineData("https://dev.nugettest.org/api/v2/")]
+        [InlineData("https://dev.nugettest.org/api/v2")]
         [InlineData("http://dev.nugettest.org/api/v2/")]
         [InlineData("http://nuget.org")]
         [InlineData("http://")]
