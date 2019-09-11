@@ -53,6 +53,7 @@ namespace NuGet.Protocol
         /// <param name="id">A package ID.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -67,6 +68,7 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -99,6 +101,7 @@ namespace NuGet.Protocol
         /// <param name="destination">A destination stream.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -117,6 +120,7 @@ namespace NuGet.Protocol
             Stream destination,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -167,6 +171,7 @@ namespace NuGet.Protocol
         /// <param name="version">A package version.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -183,6 +188,7 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -233,6 +239,7 @@ namespace NuGet.Protocol
         /// <param name="packageIdentity">A package identity.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an <see cref="IPackageDownloader" />.</returns>
@@ -245,6 +252,7 @@ namespace NuGet.Protocol
             PackageIdentity packageIdentity,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (packageIdentity == null)
@@ -282,6 +290,7 @@ namespace NuGet.Protocol
         /// <param name="version">A package version.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -298,6 +307,7 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))

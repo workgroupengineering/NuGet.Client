@@ -47,11 +47,38 @@ namespace NuGet.Protocol
         /// <param name="cacheContext">The cache context.</param>
         /// <param name="token">The cancellation token.</param>
         /// <returns>The .nuspec reader.</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<NuspecReader> GetNuspecReaderFromNupkgAsync(
+            PackageIdentity identity,
+            string url,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return GetNuspecReaderFromNupkgAsync(identity,
+                url,
+                cacheContext,
+                logger,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="NuspecReader"/> from a .nupkg. If the URL cannot be fetched or there is a problem
+        /// processing the .nuspec, an exception is throw. This method uses HTTP caching to avoid downloading the
+        /// package over and over (unless <see cref="SourceCacheContext.DirectDownload"/> is specified).
+        /// </summary>
+        /// <param name="identity">The package identity.</param>
+        /// <param name="url">The URL of the .nupkg.</param>
+        /// <param name="cacheContext">The cache context.</param>
+        /// <param name="token">The cancellation token.</param>
+        /// <returns>The .nuspec reader.</returns>
         public async Task<NuspecReader> GetNuspecReaderFromNupkgAsync(
             PackageIdentity identity,
             string url,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             NuspecReader reader = null;
@@ -75,6 +102,7 @@ namespace NuGet.Protocol
                 },
                 cacheContext,
                 logger,
+                protocolDiagnostics,
                 token);
 
             if (reader == null)
@@ -103,12 +131,43 @@ namespace NuGet.Protocol
         /// <param name="cacheContext">The cache context.</param>
         /// <param name="token">The cancellation token.</param>
         /// <returns>Returns true if the stream was copied, false otherwise.</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<bool> CopyNupkgToStreamAsync(
+            PackageIdentity identity,
+            string url,
+            Stream destination,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return CopyNupkgToStreamAsync(identity,
+                url,
+                destination,
+                cacheContext,
+                logger,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
+        /// <summary>
+        /// Copies a .nupkg stream to the <paramref name="destination"/> stream. If the .nupkg cannot be found or if
+        /// there is a network problem, no stream copy occurs.
+        /// </summary>
+        /// <param name="identity">The package identity.</param>
+        /// <param name="url">The URL of the .nupkg.</param>
+        /// <param name="destination">The destination stream. The .nupkg will be copied to this stream.</param>
+        /// <param name="cacheContext">The cache context.</param>
+        /// <param name="logger">Logger</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
+        /// <param name="token">The cancellation token.</param>
+        /// <returns>Returns true if the stream was copied, false otherwise.</returns>
         public async Task<bool> CopyNupkgToStreamAsync(
             PackageIdentity identity,
             string url,
             Stream destination,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return await ProcessNupkgStreamAsync(
@@ -117,6 +176,7 @@ namespace NuGet.Protocol
                 stream => stream.CopyToAsync(destination, token),
                 cacheContext,
                 logger,
+                protocolDiagnostics,
                 token);
         }
 
@@ -140,6 +200,7 @@ namespace NuGet.Protocol
             Func<Stream, Task> processStreamAsync,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (identity == null)
@@ -166,6 +227,7 @@ namespace NuGet.Protocol
                     processStreamAsync,
                     cacheContext,
                     logger,
+                    protocolDiagnostics,
                     token);
 
                 // If we get back a cache file result from the cache, we can save it to the in-memory cache.
@@ -195,6 +257,7 @@ namespace NuGet.Protocol
                             processStreamAsync,
                             cacheContext,
                             logger,
+                            protocolDiagnostics,
                             token);
 
                         _cacheEntries[url] = nupkgEntryTask;
@@ -213,6 +276,7 @@ namespace NuGet.Protocol
             Func<Stream, Task> processStreamAsync,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return await ProcessHttpSourceResultAsync(
@@ -243,6 +307,7 @@ namespace NuGet.Protocol
                 },
                 cacheContext,
                 logger,
+                protocolDiagnostics,
                 token);
         }
 
@@ -252,6 +317,7 @@ namespace NuGet.Protocol
             Func<HttpSourceResult, Task<T>> processAsync,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             for (var retry = 0; retry < 3; ++retry)
@@ -272,6 +338,7 @@ namespace NuGet.Protocol
                         },
                         async httpSourceResult => await processAsync(httpSourceResult),
                         logger,
+                        protocolDiagnostics,
                         token);
                 }
                 catch (TaskCanceledException) when (retry < 2)

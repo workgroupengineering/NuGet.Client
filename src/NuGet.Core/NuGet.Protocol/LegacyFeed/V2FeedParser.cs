@@ -105,10 +105,25 @@ namespace NuGet.Protocol
         /// <summary>
         /// Get an exact package
         /// </summary>
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<V2FeedPackageInfo> GetPackage(
+            PackageIdentity package,
+            SourceCacheContext sourceCacheContext,
+            ILogger log,
+            CancellationToken token)
+        {
+            return GetPackage(package, sourceCacheContext, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Get an exact package
+        /// </summary>
         public async Task<V2FeedPackageInfo> GetPackage(
             PackageIdentity package,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (log == null)
@@ -125,14 +140,15 @@ namespace NuGet.Protocol
                 package.Id,
                 max: -1,
                 ignoreNotFounds: true,
-                sourceCacheContext: sourceCacheContext,
-                log: log,
-                token: token);
+                sourceCacheContext,
+                log,
+                protocolDiagnostics,
+                token);
 
             // If not found use FindPackagesById
             if (packages.Items.Count < 1)
             {
-                var allPackages = await FindPackagesByIdAsync(package.Id, sourceCacheContext, log, token);
+                var allPackages = await FindPackagesByIdAsync(package.Id, sourceCacheContext, log, protocolDiagnostics, token);
 
                 return allPackages
                     .Where(p => p.Version == package.Version)
@@ -145,12 +161,29 @@ namespace NuGet.Protocol
         /// <summary>
         /// Retrieves all packages with the given Id from a V2 feed.
         /// </summary>
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IReadOnlyList<V2FeedPackageInfo>> FindPackagesByIdAsync(
+            string id,
+            bool includeUnlisted,
+            bool includePrerelease,
+            SourceCacheContext sourceCacheContext,
+            ILogger log,
+            CancellationToken token)
+        {
+            return FindPackagesByIdAsync(id, includeUnlisted, includePrerelease, sourceCacheContext, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Retrieves all packages with the given Id from a V2 feed.
+        /// </summary>
         public async Task<IReadOnlyList<V2FeedPackageInfo>> FindPackagesByIdAsync(
             string id,
             bool includeUnlisted,
             bool includePrerelease,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (string.IsNullOrEmpty(id))
@@ -171,9 +204,10 @@ namespace NuGet.Protocol
                 id,
                 max: -1,
                 ignoreNotFounds: false,
-                sourceCacheContext: sourceCacheContext,
-                log: log,
-                token: token);
+                sourceCacheContext,
+                log,
+                protocolDiagnostics,
+                token);
 
             var filtered = packages
                 .Items
@@ -185,9 +219,38 @@ namespace NuGet.Protocol
         /// <summary>
         /// Retrieves all packages with the given Id from a V2 feed.
         /// </summary>
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<IReadOnlyList<V2FeedPackageInfo>> FindPackagesByIdAsync(string id, SourceCacheContext sourceCacheContext, ILogger log, CancellationToken token)
         {
-            return FindPackagesByIdAsync(id, includeUnlisted: true, includePrerelease: true, sourceCacheContext: sourceCacheContext, log: log, token: token);
+            return FindPackagesByIdAsync(id, sourceCacheContext, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Retrieves all packages with the given Id from a V2 feed.
+        /// </summary>
+        public Task<IReadOnlyList<V2FeedPackageInfo>> FindPackagesByIdAsync(string id, SourceCacheContext sourceCacheContext, ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
+        {
+            return FindPackagesByIdAsync(id, includeUnlisted: true, includePrerelease: true, sourceCacheContext, log, protocolDiagnostics, token);
+        }
+
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<V2FeedPage> GetPackagesPageAsync(
+            string searchTerm,
+            SearchFilter filters,
+            int skip,
+            int take,
+            ILogger log,
+            CancellationToken token)
+        {
+            return GetPackagesPageAsync(searchTerm,
+                filters,
+                skip,
+                take,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
         }
 
         public async Task<V2FeedPage> GetPackagesPageAsync(
@@ -196,6 +259,7 @@ namespace NuGet.Protocol
             int skip,
             int take,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var uri = _queryBuilder.BuildGetPackagesUri(
@@ -210,10 +274,24 @@ namespace NuGet.Protocol
                 max: take, // Only get the first page.
                 ignoreNotFounds: false,
                 sourceCacheContext: null,
-                log: log,
-                token: token);
+                log,
+                protocolDiagnostics,
+                token);
 
             return page;
+        }
+
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<V2FeedPage> GetSearchPageAsync(
+            string searchTerm,
+            SearchFilter filters,
+            int skip,
+            int take,
+            ILogger log,
+            CancellationToken token)
+        {
+            return GetSearchPageAsync(searchTerm, filters, skip, take, log, NullProtocolDiagnostics.Instance, token);
         }
 
         public async Task<V2FeedPage> GetSearchPageAsync(
@@ -222,6 +300,7 @@ namespace NuGet.Protocol
             int skip,
             int take,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var uri = _queryBuilder.BuildSearchUri(
@@ -236,10 +315,30 @@ namespace NuGet.Protocol
                 max: take, // Only get the first page.
                 ignoreNotFounds: false,
                 sourceCacheContext: null,
-                log: log,
-                token: token);
+                log,
+                protocolDiagnostics,
+                token);
 
             return page;
+        }
+
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IReadOnlyList<V2FeedPackageInfo>> Search(
+            string searchTerm,
+            SearchFilter filters,
+            int skip,
+            int take,
+            ILogger log,
+            CancellationToken token)
+        {
+            return Search(searchTerm,
+                filters,
+                skip,
+                take,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
         }
 
         public async Task<IReadOnlyList<V2FeedPackageInfo>> Search(
@@ -248,6 +347,7 @@ namespace NuGet.Protocol
             int skip,
             int take,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var uri = _queryBuilder.BuildSearchUri(searchTerm, filters, skip, take);
@@ -258,10 +358,30 @@ namespace NuGet.Protocol
                 max: take,
                 ignoreNotFounds: false,
                 sourceCacheContext: null,
-                log: log,
-                token: token);
+                log,
+                protocolDiagnostics,
+                token);
 
             return page.Items;
+        }
+
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<DownloadResourceResult> DownloadFromUrl(
+            PackageIdentity package,
+            Uri downloadUri,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            ILogger log,
+            CancellationToken token)
+        {
+            return DownloadFromUrl(package,
+                downloadUri,
+                downloadContext,
+                globalPackagesFolder,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
         }
 
         public async Task<DownloadResourceResult> DownloadFromUrl(
@@ -270,6 +390,7 @@ namespace NuGet.Protocol
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return await GetDownloadResultUtility.GetDownloadResultAsync(
@@ -279,6 +400,26 @@ namespace NuGet.Protocol
                 downloadContext,
                 globalPackagesFolder,
                 log,
+                protocolDiagnostics,
+                token);
+        }
+
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<DownloadResourceResult> DownloadFromIdentity(
+            PackageIdentity package,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            SourceCacheContext sourceCacheContext,
+            ILogger log,
+            CancellationToken token)
+        {
+            return DownloadFromIdentity(package,
+                downloadContext,
+                globalPackagesFolder,
+                sourceCacheContext,
+                log,
+                NullProtocolDiagnostics.Instance,
                 token);
         }
 
@@ -288,9 +429,10 @@ namespace NuGet.Protocol
             string globalPackagesFolder,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var packageInfo = await GetPackage(package, sourceCacheContext, log, token);
+            var packageInfo = await GetPackage(package, sourceCacheContext, log, protocolDiagnostics, token);
 
             if (packageInfo == null)
             {
@@ -304,6 +446,7 @@ namespace NuGet.Protocol
                 downloadContext,
                 globalPackagesFolder,
                 log,
+                protocolDiagnostics,
                 token);
         }
 
@@ -423,6 +566,27 @@ namespace NuGet.Protocol
             return null;
         }
 
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<V2FeedPage> QueryV2FeedAsync(
+            string relativeUri,
+            string id,
+            int max,
+            bool ignoreNotFounds,
+            SourceCacheContext sourceCacheContext,
+            ILogger log,
+            CancellationToken token)
+        {
+            return QueryV2FeedAsync(relativeUri,
+                id,
+                max,
+                ignoreNotFounds,
+                sourceCacheContext,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
         public async Task<V2FeedPage> QueryV2FeedAsync(
             string relativeUri,
             string id,
@@ -430,6 +594,7 @@ namespace NuGet.Protocol
             bool ignoreNotFounds,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var metadataCache = new MetadataReferenceCache();
@@ -446,7 +611,7 @@ namespace NuGet.Protocol
             var cacheKey = GetCacheKey(relativeUri, page);
 
             // first request
-            Task<XDocument> docRequest = LoadXmlAsync(uri, cacheKey, ignoreNotFounds, sourceCacheContext, log, token);
+            Task<XDocument> docRequest = LoadXmlAsync(uri, cacheKey, ignoreNotFounds, sourceCacheContext, log, protocolDiagnostics, token);
 
             // TODO: re-implement caching at a higher level for both v2 and v3
             string nextUri = null;
@@ -487,7 +652,7 @@ namespace NuGet.Protocol
                         }
                         page++;
                         cacheKey = GetCacheKey(relativeUri, page);
-                        docRequest = LoadXmlAsync(nextUri, cacheKey, ignoreNotFounds, sourceCacheContext, log, token);
+                        docRequest = LoadXmlAsync(nextUri, cacheKey, ignoreNotFounds, sourceCacheContext, log, protocolDiagnostics, token);
                     }
                 }
             }
@@ -522,6 +687,7 @@ namespace NuGet.Protocol
             bool ignoreNotFounds,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (cacheKey != null && sourceCacheContext != null)
@@ -563,6 +729,7 @@ namespace NuGet.Protocol
                             }
                         },
                         log,
+                        protocolDiagnostics,
                         token);
                 }
                 catch (Exception ex)
@@ -617,6 +784,7 @@ namespace NuGet.Protocol
                 },
                 sourceCacheContext,
                 log,
+                protocolDiagnostics,
                 token);
             }
         }

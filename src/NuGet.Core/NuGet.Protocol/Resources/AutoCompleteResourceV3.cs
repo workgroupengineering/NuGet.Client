@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
@@ -31,6 +32,7 @@ namespace NuGet.Protocol
             string packageIdPrefix,
             bool includePrerelease,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var searchUrl = _serviceIndex.GetServiceEntryUri(ServiceTypes.SearchAutocompleteService);
@@ -53,6 +55,7 @@ namespace NuGet.Protocol
             var results = await _client.GetJObjectAsync(
                 new HttpSourceRequest(queryUri, Common.NullLogger.Instance),
                 Common.NullLogger.Instance,
+                protocolDiagnostics,
                 token);
             token.ThrowIfCancellationRequested();
             if (results == null)
@@ -84,10 +87,11 @@ namespace NuGet.Protocol
             bool includePrerelease,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             //*TODOs : Take prerelease as parameter. Also it should return both listed and unlisted for powershell ?
-            var packages = await _regResource.GetPackageMetadata(packageId, includePrerelease, false, sourceCacheContext, Common.NullLogger.Instance, token);
+            var packages = await _regResource.GetPackageMetadata(packageId, includePrerelease, false, sourceCacheContext, Common.NullLogger.Instance, protocolDiagnostics, token);
             var versions = new List<NuGetVersion>();
             foreach (var package in packages)
             {

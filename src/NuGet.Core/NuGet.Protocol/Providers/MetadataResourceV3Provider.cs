@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -17,10 +18,10 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             MetadataResourceV3 curResource = null;
-            var regResource = await source.GetResourceAsync<RegistrationResourceV3>(token);
+            var regResource = await source.GetResourceAsync<RegistrationResourceV3>(protocolDiagnostics, token);
 
             if (regResource != null)
             {

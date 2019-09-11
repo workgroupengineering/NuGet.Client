@@ -47,6 +47,7 @@ namespace NuGet.Protocol
             NuGetFramework projectFramework,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (package == null)
@@ -94,6 +95,7 @@ namespace NuGet.Protocol
             NuGetFramework projectFramework,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (packageId == null)

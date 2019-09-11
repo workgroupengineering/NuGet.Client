@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +27,28 @@ namespace NuGet.Protocol
             return new VersionRange(range.MinVersion, range.IsMinInclusive, range.MaxVersion, range.IsMaxInclusive);
         }
 
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<IEnumerable<JObject>> LoadRanges(
+            HttpSource httpSource,
+            Uri registrationUri,
+            string packageId,
+            VersionRange range,
+            SourceCacheContext cacheContext,
+            ILogger log,
+            CancellationToken token)
+        {
+            return LoadRanges(
+                httpSource,
+                registrationUri,
+                packageId,
+                range,
+                cacheContext,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
         public async static Task<IEnumerable<JObject>> LoadRanges(
             HttpSource httpSource,
             Uri registrationUri,
@@ -36,6 +56,7 @@ namespace NuGet.Protocol
             VersionRange range,
             SourceCacheContext cacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var packageIdLowerCase = packageId.ToLowerInvariant();
@@ -55,6 +76,7 @@ namespace NuGet.Protocol
                     return await httpSourceResult.Stream.AsJObjectAsync(token);
                 },
                 log,
+                protocolDiagnostics,
                 token);
 
             if (index == null)
@@ -90,6 +112,7 @@ namespace NuGet.Protocol
                                 return await httpSourceResult.Stream.AsJObjectAsync(token);
                             },
                             log,
+                            protocolDiagnostics,
                             token));
                     }
                     else

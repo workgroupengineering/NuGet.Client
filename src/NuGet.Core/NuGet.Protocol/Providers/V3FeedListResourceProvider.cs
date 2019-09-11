@@ -1,8 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -22,21 +21,22 @@ namespace NuGet.Protocol
 
         public override async Task<Tuple<bool, INuGetResource>> TryCreate(
             SourceRepository source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             ListResource resource = null;
 
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
 
             if (serviceIndex != null)
             {
                 var baseUrl = serviceIndex.GetServiceEntryUri(ServiceTypes.LegacyGallery);
                 if (baseUrl != null)
                 {
-                    var httpSource = await source.GetResourceAsync<HttpSourceResource>(token);
+                    var httpSource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
                     var serviceDocument =
                         await ODataServiceDocumentUtils.CreateODataServiceDocumentResourceV2(
-                            baseUrl.AbsoluteUri, httpSource.HttpSource, DateTime.UtcNow, NullLogger.Instance, token);
+                            baseUrl.AbsoluteUri, httpSource.HttpSource, DateTime.UtcNow, NullLogger.Instance, protocolDiagnostics, token);
                     var parser = new V2FeedParser(httpSource.HttpSource, serviceDocument.BaseAddress, source.PackageSource.Source);
                     var feedCapabilityResource = new LegacyFeedCapabilityResourceV2Feed(parser, serviceDocument.BaseAddress);
                     resource = new V2FeedListResource(parser, feedCapabilityResource, serviceDocument.BaseAddress);

@@ -30,6 +30,7 @@ namespace NuGet.Protocol
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (identity == null)

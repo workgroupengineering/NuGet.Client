@@ -16,6 +16,8 @@ namespace NuGet.Protocol
     {
         private readonly FindLocalPackagesResource _localResource;
 
+        private static readonly Type LocalAutoCompleteResourceType = typeof(LocalAutoCompleteResource);
+
         public LocalAutoCompleteResource(FindLocalPackagesResource localResource)
         {
             if (localResource == null)
@@ -30,6 +32,7 @@ namespace NuGet.Protocol
                     string packageIdPrefix,
                     bool includePrerelease,
                     ILogger log,
+                    IProtocolDiagnostics protocolDiagnostics,
                     CancellationToken token)
         {
             return GetPackageIdsFromLocalPackageRepository(
@@ -45,6 +48,7 @@ namespace NuGet.Protocol
             bool includePrerelease,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
             CancellationToken token)
         {
             return GetPackageVersionsFromLocalPackageRepository(

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Plugins;
 
 namespace NuGet.Protocol.Core.Types
@@ -40,6 +41,7 @@ namespace NuGet.Protocol.Core.Types
         /// is cancelled.</exception>
         public override async Task<Tuple<bool, INuGetResource>> TryCreate(
             SourceRepository source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (source == null)
@@ -51,7 +53,7 @@ namespace NuGet.Protocol.Core.Types
 
             PluginResource resource = null;
 
-            var pluginCreationResults = await _pluginManager.CreatePluginsAsync(source, cancellationToken);
+            var pluginCreationResults = await _pluginManager.CreatePluginsAsync(source, protocolDiagnostics, cancellationToken);
 
             if (pluginCreationResults != null && pluginCreationResults.Any())
             {

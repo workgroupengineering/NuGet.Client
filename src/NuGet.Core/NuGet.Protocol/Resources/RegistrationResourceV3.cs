@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
@@ -95,18 +96,55 @@ namespace NuGet.Protocol
         /// Returns the registration blob for the id and version
         /// </summary>
         /// <remarks>The inlined entries are potentially going away soon</remarks>
-        public virtual async Task<JObject> GetPackageMetadata(PackageIdentity identity, SourceCacheContext cacheContext, Common.ILogger log, CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<JObject> GetPackageMetadata(PackageIdentity identity, SourceCacheContext cacheContext, Common.ILogger log, CancellationToken token)
         {
-            return (await GetPackageMetadata(identity.Id, new VersionRange(identity.Version, true, identity.Version, true), true, true, cacheContext, log, token)).SingleOrDefault();
+            return GetPackageMetadata(identity, cacheContext, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Returns the registration blob for the id and version
+        /// </summary>
+        /// <remarks>The inlined entries are potentially going away soon</remarks>
+        public virtual async Task<JObject> GetPackageMetadata(PackageIdentity identity, SourceCacheContext cacheContext, Common.ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
+        {
+            return (await GetPackageMetadata(identity.Id, new VersionRange(identity.Version, true, identity.Version, true), true, true, cacheContext, log, protocolDiagnostics, token)).SingleOrDefault();
         }
 
         /// <summary>
         /// Returns inlined catalog entry items for each registration blob
         /// </summary>
         /// <remarks>The inlined entries are potentially going away soon</remarks>
-        public virtual async Task<IEnumerable<JObject>> GetPackageMetadata(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext cacheContext, Common.ILogger log, CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<IEnumerable<JObject>> GetPackageMetadata(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext cacheContext, Common.ILogger log, CancellationToken token)
         {
-            return await GetPackageMetadata(packageId, VersionRange.All, includePrerelease, includeUnlisted, cacheContext, log, token);
+            return GetPackageMetadata(packageId, includePrerelease, includeUnlisted, cacheContext, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Returns inlined catalog entry items for each registration blob
+        /// </summary>
+        /// <remarks>The inlined entries are potentially going away soon</remarks>
+        public virtual async Task<IEnumerable<JObject>> GetPackageMetadata(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext cacheContext, Common.ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
+        {
+            return await GetPackageMetadata(packageId, VersionRange.All, includePrerelease, includeUnlisted, cacheContext, log, protocolDiagnostics, token);
+        }
+
+        /// <summary>
+        /// Returns inlined catalog entry items for each registration blob
+        /// </summary>
+        /// <remarks>The inlined entries are potentially going away soon</remarks>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<IEnumerable<JObject>> GetPackageMetadata(
+            string packageId,
+            VersionRange range,
+            bool includePrerelease,
+            bool includeUnlisted,
+            SourceCacheContext cacheContext,
+            Common.ILogger log,
+            CancellationToken token)
+        {
+            return GetPackageMetadata(packageId, range, includePrerelease, includeUnlisted, cacheContext, log, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -120,13 +158,14 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext cacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var results = new List<JObject>();
 
             var registrationUri = GetUri(packageId);
 
-            var ranges = await RegistrationUtility.LoadRanges(_client, registrationUri, packageId, range, cacheContext, log, token);
+            var ranges = await RegistrationUtility.LoadRanges(_client, registrationUri, packageId, range, cacheContext, log, protocolDiagnostics, token);
 
             foreach (var rangeObj in ranges)
             {
@@ -162,9 +201,18 @@ namespace NuGet.Protocol
         /// <summary>
         /// Returns all index entries of type Package within the given range and filters
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public virtual Task<IEnumerable<JObject>> GetPackageEntries(string packageId, bool includeUnlisted, SourceCacheContext cacheContext, Common.ILogger log, CancellationToken token)
         {
-            return GetPackageMetadata(packageId, VersionRange.All, true, includeUnlisted, cacheContext, log, token);
+            return GetPackageEntries(packageId, includeUnlisted, cacheContext, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Returns all index entries of type Package within the given range and filters
+        /// </summary>
+        public virtual Task<IEnumerable<JObject>> GetPackageEntries(string packageId, bool includeUnlisted, SourceCacheContext cacheContext, Common.ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
+        {
+            return GetPackageMetadata(packageId, VersionRange.All, true, includeUnlisted, cacheContext, log, protocolDiagnostics, token);
         }
     }
 }

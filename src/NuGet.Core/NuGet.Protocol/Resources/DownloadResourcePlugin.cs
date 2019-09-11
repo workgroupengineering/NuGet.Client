@@ -76,11 +76,46 @@ namespace NuGet.Protocol
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger" /> is <c>null</c>.</exception>
         /// <exception cref="OperationCanceledException">Thrown if <paramref name="cancellationToken" />
         /// is cancelled.</exception>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public override Task<DownloadResourceResult> GetDownloadResourceResultAsync(
+            PackageIdentity identity,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            ILogger logger,
+            CancellationToken cancellationToken)
+        {
+            return GetDownloadResourceResultAsync(
+                identity,
+                downloadContext,
+                globalPackagesFolder,
+                logger,
+                NullProtocolDiagnostics.Instance,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously downloads a package.
+        /// </summary>
+        /// <param name="identity">The package identity.</param>
+        /// <param name="downloadContext">A package download context.</param>
+        /// <param name="globalPackagesFolder">The path to the global packages folder.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns
+        /// a <see cref="DownloadResourceResult" />.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="identity" /> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="downloadContext" />
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger" /> is <c>null</c>.</exception>
+        /// <exception cref="OperationCanceledException">Thrown if <paramref name="cancellationToken" />
+        /// is cancelled.</exception>
         public async override Task<DownloadResourceResult> GetDownloadResourceResultAsync(
             PackageIdentity identity,
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (identity == null)

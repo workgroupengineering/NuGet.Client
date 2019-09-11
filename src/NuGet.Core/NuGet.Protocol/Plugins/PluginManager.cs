@@ -106,8 +106,24 @@ namespace NuGet.Protocol.Plugins
         /// <param name="cancellationToken"></param>
         /// <exception cref="ArgumentNullException">Throw if <paramref name="source"/> is null </exception>
         /// <returns>PluginCreationResults</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<PluginCreationResult>> CreatePluginsAsync(
+            SourceRepository source,
+            CancellationToken cancellationToken)
+        {
+            return CreatePluginsAsync(source, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        /// <summary>
+        /// Create plugins appropriate for the given source
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="cancellationToken"></param>
+        /// <exception cref="ArgumentNullException">Throw if <paramref name="source"/> is null </exception>
+        /// <returns>PluginCreationResults</returns>
         public async Task<IEnumerable<PluginCreationResult>> CreatePluginsAsync(
             SourceRepository source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (source == null)
@@ -121,7 +137,7 @@ namespace NuGet.Protocol.Plugins
             // Fast path
             if (source.PackageSource.IsHttp && IsPluginPossiblyAvailable())
             {
-                var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(cancellationToken);
+                var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, cancellationToken);
 
                 if (serviceIndex != null)
                 {

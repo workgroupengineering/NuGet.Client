@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Protocol.Core.Types;
 
@@ -29,7 +30,7 @@ namespace NuGet.Protocol
         {
         }
 
-        public override Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             Debug.Assert(source.PackageSource.IsHttp, "HTTP source requested for a non-http source.");
 
@@ -50,7 +51,7 @@ namespace NuGet.Protocol
 
                 curResource = _cache.GetOrAdd(
                     source.PackageSource, 
-                    packageSource => new HttpSourceResource(HttpSource.Create(source, throttle)));
+                    packageSource => new HttpSourceResource(HttpSource.Create(source, throttle, protocolDiagnostics)));
             }
 
             return Task.FromResult(new Tuple<bool, INuGetResource>(curResource != null, curResource));

@@ -129,8 +129,17 @@ namespace NuGet.Protocol.Core.Types
             }
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task AddPackageToSource(
+            OfflineFeedAddContext offlineFeedAddContext,
+            CancellationToken token)
+        {
+            return AddPackageToSource(offlineFeedAddContext, NullProtocolDiagnostics.Instance, token);
+        }
+
         public static async Task AddPackageToSource(
             OfflineFeedAddContext offlineFeedAddContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (offlineFeedAddContext == null)
@@ -205,6 +214,7 @@ namespace NuGet.Protocol.Core.Types
                                 packageDownloader,
                                 versionFolderPathResolver,
                                 offlineFeedAddContext.ExtractionContext,
+                                protocolDiagnostics,
                                 token,
                                 parentId: Guid.Empty);
                         }

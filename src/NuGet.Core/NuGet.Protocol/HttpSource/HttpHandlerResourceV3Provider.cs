@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Protocol.Core.Types;
 
@@ -21,7 +22,7 @@ namespace NuGet.Protocol
         {
         }
 
-        public override Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             Debug.Assert(source.PackageSource.IsHttp, "HTTP handler requested for a non-http source.");
 

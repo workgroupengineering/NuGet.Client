@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -19,9 +20,9 @@ namespace NuGet.Protocol
             _rawSearchResource = searchResource;
         }
 
-        public override async Task<IEnumerable<IPackageSearchMetadata>> SearchAsync(string searchTerm, SearchFilter filter, int skip, int take, Common.ILogger log, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<IPackageSearchMetadata>> SearchAsync(string searchTerm, SearchFilter filter, int skip, int take, Common.ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken cancellationToken)
         {
-            var searchResultJsonObjects = await _rawSearchResource.Search(searchTerm, filter, skip, take, Common.NullLogger.Instance, cancellationToken);
+            var searchResultJsonObjects = await _rawSearchResource.Search(searchTerm, filter, skip, take, Common.NullLogger.Instance, protocolDiagnostics, cancellationToken);
 
             var metadataCache = new MetadataReferenceCache();
 

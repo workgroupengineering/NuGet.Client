@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -18,7 +19,7 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository sourceRepository, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository sourceRepository, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             INuGetResource resource = null;
 
@@ -26,7 +27,7 @@ namespace NuGet.Protocol
                 &&
                 !sourceRepository.PackageSource.Source.EndsWith("json", StringComparison.OrdinalIgnoreCase))
             {
-                var httpSourceResource = await sourceRepository.GetResourceAsync<HttpSourceResource>(token);
+                var httpSourceResource = await sourceRepository.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
 
                 resource = new RemoteV2FindPackageByIdResource(
                     sourceRepository.PackageSource,

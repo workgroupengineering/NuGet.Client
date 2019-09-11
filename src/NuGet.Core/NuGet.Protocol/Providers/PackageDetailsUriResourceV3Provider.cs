@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -17,10 +18,10 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             PackageDetailsUriResourceV3 resource = null;
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
             if (serviceIndex != null)
             {
                 var uri = serviceIndex.GetServiceEntryUri(ServiceTypes.PackageDetailsUriTemplate);

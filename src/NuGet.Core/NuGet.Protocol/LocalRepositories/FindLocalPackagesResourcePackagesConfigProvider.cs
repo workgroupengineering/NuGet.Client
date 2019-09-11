@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -19,10 +20,10 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             FindLocalPackagesResource curResource = null;
-            var feedType = await source.GetFeedType(token);
+            var feedType = await source.GetFeedType(protocolDiagnostics, token);
 
             if (feedType == FeedType.FileSystemPackagesConfig)
             {

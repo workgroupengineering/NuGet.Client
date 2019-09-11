@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -33,9 +30,10 @@ namespace NuGet.Protocol
             VersionRange range,
             SourceCacheContext cacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var ranges = await RegistrationUtility.LoadRanges(httpClient, registrationUri, packageId, range, cacheContext, log, token);
+            var ranges = await RegistrationUtility.LoadRanges(httpClient, registrationUri, packageId, range, cacheContext, log, protocolDiagnostics, token);
 
             var results = new HashSet<RemoteSourceDependencyInfo>();
             foreach (var rangeObj in ranges)
@@ -122,11 +120,12 @@ namespace NuGet.Protocol
             SourceCacheContext cacheContext,
             NuGetFramework projectTargetFramework,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var frameworkComparer = new NuGetFrameworkFullComparer();
             var frameworkReducer = new FrameworkReducer();
-            var dependencies = await GetDependencies(httpClient, registrationUri, packageId, range, cacheContext, log, token);
+            var dependencies = await GetDependencies(httpClient, registrationUri, packageId, range, cacheContext, log, protocolDiagnostics, token);
 
             var result = new HashSet<RegistrationInfo>();
             var registrationInfo = new RegistrationInfo();

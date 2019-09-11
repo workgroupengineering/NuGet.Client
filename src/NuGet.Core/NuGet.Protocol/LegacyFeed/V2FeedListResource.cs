@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -34,6 +34,7 @@ namespace NuGet.Protocol
             bool allVersions,
             bool includeDelisted,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var isSearchSupported = await _feedCapabilities.SupportsSearchAsync(logger, token);
@@ -107,7 +108,7 @@ namespace NuGet.Protocol
 
             }
             return new EnumerableAsync<IPackageSearchMetadata>(_feedParser, searchTerm, filter, 0, Take, isSearchSupported, allVersions,
-                        logger, token);
+                        logger, protocolDiagnostics, token);
         }
     }
 }
@@ -116,6 +117,7 @@ internal class EnumerableAsync<T> : IEnumerableAsync<T>
 {
     private readonly SearchFilter _filter;
     private readonly ILogger _logger;
+    private readonly IProtocolDiagnostics _protocolDiagnostics;
     private readonly string _searchTerm;
     private readonly int _skip;
     private readonly int _take;
@@ -124,8 +126,7 @@ internal class EnumerableAsync<T> : IEnumerableAsync<T>
     private readonly bool _isSearchAvailable;
     private readonly bool _allVersions;
 
-
-    public EnumerableAsync(IV2FeedParser feedParser, string searchTerm, SearchFilter filter, int skip, int take, bool isSearchAvailable,bool allVersions, ILogger logger, CancellationToken token)
+    public EnumerableAsync(IV2FeedParser feedParser, string searchTerm, SearchFilter filter, int skip, int take, bool isSearchAvailable,bool allVersions, ILogger logger, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
     {
         _feedParser = feedParser;
         _searchTerm = searchTerm;
@@ -135,12 +136,13 @@ internal class EnumerableAsync<T> : IEnumerableAsync<T>
         _isSearchAvailable = isSearchAvailable;
         _allVersions = allVersions;
         _logger = logger;
+        _protocolDiagnostics = protocolDiagnostics;
         _token = token;
     }
 
     public IEnumeratorAsync<T> GetEnumeratorAsync()
     {
-        return (IEnumeratorAsync<T>)new EnumeratorAsync(_feedParser, _searchTerm, _filter, _skip, _take, _isSearchAvailable,_allVersions, _logger, _token);
+        return (IEnumeratorAsync<T>)new EnumeratorAsync(_feedParser, _searchTerm, _filter, _skip, _take, _isSearchAvailable,_allVersions, _logger, _protocolDiagnostics, _token);
     }
 }
 
@@ -148,6 +150,7 @@ internal class EnumeratorAsync : IEnumeratorAsync<IPackageSearchMetadata>
 {
     private readonly SearchFilter _filter;
     private readonly ILogger _logger;
+    private readonly IProtocolDiagnostics _protocolDiagnostics;
     private readonly string _searchTerm;
     private int _skip;
     private readonly int _take;
@@ -156,12 +159,11 @@ internal class EnumeratorAsync : IEnumeratorAsync<IPackageSearchMetadata>
     private readonly bool _isSearchAvailable;
     private readonly bool _allVersions;
 
-
     private IEnumerator<IPackageSearchMetadata> _currentEnumerator;
     private V2FeedPage _currentPage;
 
     public EnumeratorAsync(IV2FeedParser feedParser, string searchTerm, SearchFilter filter, int skip, int take, bool isSearchAvailable, bool allVersions,
-        ILogger logger, CancellationToken token)
+        ILogger logger, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
     {
         _feedParser = feedParser;
         _searchTerm = searchTerm;
@@ -171,6 +173,7 @@ internal class EnumeratorAsync : IEnumeratorAsync<IPackageSearchMetadata>
         _isSearchAvailable = isSearchAvailable;
         _allVersions = allVersions;
         _logger = logger;
+        _protocolDiagnostics = protocolDiagnostics;
         _token = token;
     }
 
@@ -191,8 +194,8 @@ internal class EnumeratorAsync : IEnumeratorAsync<IPackageSearchMetadata>
 
 
             _currentPage = _isSearchAvailable
-                ? await _feedParser.GetSearchPageAsync(_searchTerm, _filter, _skip, _take, _logger, _token)
-                : await _feedParser.GetPackagesPageAsync(_searchTerm, _filter, _skip, _take, _logger, _token);
+                ? await _feedParser.GetSearchPageAsync(_searchTerm, _filter, _skip, _take, _logger, _protocolDiagnostics, _token)
+                : await _feedParser.GetPackagesPageAsync(_searchTerm, _filter, _skip, _take, _logger, _protocolDiagnostics, _token);
 
             
             var results = _allVersions?
@@ -200,15 +203,15 @@ internal class EnumeratorAsync : IEnumeratorAsync<IPackageSearchMetadata>
                  .Select(group => group.OrderByDescending(p => p.Version)).SelectMany(pg => pg)
                  .Select(
                      package =>
-                         V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter,
-                             (V2FeedParser)_feedParser, _logger, _token)).Where(p => _filter.IncludeDelisted || p.IsListed)
+                         V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter, (V2FeedParser)_feedParser, _logger, _protocolDiagnostics, _token))
+                            .Where(p => _filter.IncludeDelisted || p.IsListed)
             :
             _currentPage.Items.GroupBy(p => p.Id)
                  .Select(group => group.OrderByDescending(p => p.Version).First())
                  .Select(
                      package =>
-                         V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter,
-                             (V2FeedParser)_feedParser, _logger, _token)).Where(p => _filter.IncludeDelisted || p.IsListed);
+                         V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter, (V2FeedParser)_feedParser, _logger, _protocolDiagnostics, _token))
+                            .Where(p => _filter.IncludeDelisted || p.IsListed);
 
 
             var enumerator = results.GetEnumerator();
@@ -225,23 +228,23 @@ internal class EnumeratorAsync : IEnumeratorAsync<IPackageSearchMetadata>
                 }
                 _skip += _take;
                 _currentPage = _isSearchAvailable
-                                    ? await _feedParser.GetSearchPageAsync(_searchTerm, _filter, _skip, _take, _logger, _token)
-                                    : await _feedParser.GetPackagesPageAsync(_searchTerm, _filter, _skip, _take, _logger, _token);
+                                    ? await _feedParser.GetSearchPageAsync(_searchTerm, _filter, _skip, _take, _logger, _protocolDiagnostics, _token)
+                                    : await _feedParser.GetPackagesPageAsync(_searchTerm, _filter, _skip, _take, _logger, _protocolDiagnostics, _token);
 
                 var results = _allVersions ?
                _currentPage.Items.GroupBy(p => p.Id)
                 .Select(group => group.OrderByDescending(p => p.Version)).SelectMany(pg => pg)
                 .Select(
                     package =>
-                        V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter,
-                            (V2FeedParser)_feedParser, _logger, _token)).Where(p => _filter.IncludeDelisted || p.IsListed)
+                        V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter, (V2FeedParser)_feedParser, _logger, _protocolDiagnostics, _token))
+                            .Where(p => _filter.IncludeDelisted || p.IsListed)
                 :
                 _currentPage.Items.GroupBy(p => p.Id)
                  .Select(group => group.OrderByDescending(p => p.Version).First())
                  .Select(
                      package =>
-                         V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter,
-                             (V2FeedParser)_feedParser, _logger, _token)).Where(p => _filter.IncludeDelisted || p.IsListed);
+                         V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, _filter, (V2FeedParser)_feedParser, _logger, _protocolDiagnostics, _token))
+                            .Where(p => _filter.IncludeDelisted || p.IsListed);
 
                 var enumerator = results.GetEnumerator();
                 _currentEnumerator = enumerator;

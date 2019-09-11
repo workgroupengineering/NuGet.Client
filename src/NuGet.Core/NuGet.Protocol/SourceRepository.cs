@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Configuration;
 
 namespace NuGet.Protocol.Core.Types
@@ -94,11 +95,20 @@ namespace NuGet.Protocol.Core.Types
         /// <summary>
         /// Find the FeedType of the source. If overridden FeedTypeOverride is returned.
         /// </summary>
-        public virtual async Task<FeedType> GetFeedType(CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<FeedType> GetFeedType(CancellationToken token)
+        {
+            return GetFeedType(NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Find the FeedType of the source. If overridden FeedTypeOverride is returned.
+        /// </summary>
+        public virtual async Task<FeedType> GetFeedType(IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (FeedTypeOverride == FeedType.Undefined)
             {
-                var resource = await GetResourceAsync<FeedTypeResource>(token);
+                var resource = await GetResourceAsync<FeedTypeResource>(protocolDiagnostics, token);
                 return resource.FeedType;
             }
             else
@@ -112,9 +122,10 @@ namespace NuGet.Protocol.Core.Types
         /// </summary>
         /// <typeparam name="T">Expected resource type</typeparam>
         /// <returns>Null if the resource does not exist</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public virtual T GetResource<T>() where T : class, INuGetResource
         {
-            return GetResource<T>(CancellationToken.None);
+            return GetResource<T>(NullProtocolDiagnostics.Instance);
         }
 
         /// <summary>
@@ -122,9 +133,30 @@ namespace NuGet.Protocol.Core.Types
         /// </summary>
         /// <typeparam name="T">Expected resource type</typeparam>
         /// <returns>Null if the resource does not exist</returns>
+        public virtual T GetResource<T>(IProtocolDiagnostics protocolDiagnostics) where T : class, INuGetResource
+        {
+            return GetResource<T>(protocolDiagnostics, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Returns a resource from the SourceRepository if it exists.
+        /// </summary>
+        /// <typeparam name="T">Expected resource type</typeparam>
+        /// <returns>Null if the resource does not exist</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public virtual T GetResource<T>(CancellationToken token) where T : class, INuGetResource
         {
-            var task = GetResourceAsync<T>(token);
+            return GetResource<T>(NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Returns a resource from the SourceRepository if it exists.
+        /// </summary>
+        /// <typeparam name="T">Expected resource type</typeparam>
+        /// <returns>Null if the resource does not exist</returns>
+        public virtual T GetResource<T>(IProtocolDiagnostics protocolDiagnostics, CancellationToken token) where T : class, INuGetResource
+        {
+            var task = GetResourceAsync<T>(protocolDiagnostics, token);
             task.Wait();
 
             return task.Result;
@@ -135,6 +167,7 @@ namespace NuGet.Protocol.Core.Types
         /// </summary>
         /// <typeparam name="T">Expected resource type</typeparam>
         /// <returns>Null if the resource does not exist</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public virtual async Task<T> GetResourceAsync<T>() where T : class, INuGetResource
         {
             return await GetResourceAsync<T>(CancellationToken.None);
@@ -145,7 +178,28 @@ namespace NuGet.Protocol.Core.Types
         /// </summary>
         /// <typeparam name="T">Expected resource type</typeparam>
         /// <returns>Null if the resource does not exist</returns>
-        public virtual async Task<T> GetResourceAsync<T>(CancellationToken token) where T : class, INuGetResource
+        public virtual async Task<T> GetResourceAsync<T>(IProtocolDiagnostics protocolDiagnostics) where T : class, INuGetResource
+        {
+            return await GetResourceAsync<T>(protocolDiagnostics, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Returns a resource from the SourceRepository if it exists.
+        /// </summary>
+        /// <typeparam name="T">Expected resource type</typeparam>
+        /// <returns>Null if the resource does not exist</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<T> GetResourceAsync<T>(CancellationToken token) where T : class, INuGetResource
+        {
+            return GetResourceAsync<T>(NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Returns a resource from the SourceRepository if it exists.
+        /// </summary>
+        /// <typeparam name="T">Expected resource type</typeparam>
+        /// <returns>Null if the resource does not exist</returns>
+        public virtual async Task<T> GetResourceAsync<T>(IProtocolDiagnostics protocolDiagnostics, CancellationToken token) where T : class, INuGetResource
         {
             var resourceType = typeof(T);
             INuGetResourceProvider[] possible = null;
@@ -154,7 +208,7 @@ namespace NuGet.Protocol.Core.Types
             {
                 foreach (var provider in possible)
                 {
-                    var result = await provider.TryCreate(this, token);
+                    var result = await provider.TryCreate(this, protocolDiagnostics, token);
                     if (result.Item1)
                     {
                         return (T)result.Item2;

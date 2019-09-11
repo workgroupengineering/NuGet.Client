@@ -1,10 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -18,16 +18,16 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             RegistrationResourceV3 regResource = null;
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
 
             if (serviceIndex != null)
             {
                 var baseUrl = serviceIndex.GetServiceEntryUri(ServiceTypes.RegistrationsBaseUrl);
 
-                var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
+                var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
 
                 // construct a new resource
                 regResource = new RegistrationResourceV3(httpSourceResource.HttpSource, baseUrl);

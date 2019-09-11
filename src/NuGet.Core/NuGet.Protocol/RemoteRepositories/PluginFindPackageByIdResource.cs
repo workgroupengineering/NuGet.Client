@@ -74,6 +74,7 @@ namespace NuGet.Protocol.Core.Types
         /// <param name="destination">A destination stream.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -85,6 +86,7 @@ namespace NuGet.Protocol.Core.Types
             Stream destination,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
@@ -108,6 +110,7 @@ namespace NuGet.Protocol.Core.Types
             PackageIdentity packageIdentity,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (packageIdentity == null)
@@ -153,6 +156,7 @@ namespace NuGet.Protocol.Core.Types
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -207,6 +211,7 @@ namespace NuGet.Protocol.Core.Types
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -289,6 +294,7 @@ namespace NuGet.Protocol.Core.Types
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))

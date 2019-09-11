@@ -63,10 +63,25 @@ namespace NuGet.Protocol
         /// <summary>
         /// Caching Get request.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<T> GetAsync<T>(
+            HttpSourceCachedRequest request,
+            Func<HttpSourceResult, Task<T>> processAsync,
+            ILogger log,
+            CancellationToken token)
+        {
+            return GetAsync<T>(request,
+                processAsync,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
         public virtual async Task<T> GetAsync<T>(
             HttpSourceCachedRequest request,
             Func<HttpSourceResult, Task<T>> processAsync,
             ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
             CancellationToken token)
         {
             var cacheResult = HttpCacheUtility.InitializeHttpCacheResult(
@@ -130,6 +145,7 @@ namespace NuGet.Protocol
                         request.MaxTries,
                         request.CacheContext.SourceCacheContext.SessionId,
                         log,
+                        protocolDiagonstics,
                         lockedToken);
 
                     using (var throttledResponse = await throttledResponseFactory())
@@ -187,6 +203,7 @@ namespace NuGet.Protocol
                 token: token);
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<T> ProcessStreamAsync<T>(
             HttpSourceRequest request,
             Func<Stream, Task<T>> processAsync,
@@ -196,6 +213,17 @@ namespace NuGet.Protocol
             return ProcessStreamAsync<T>(request, processAsync, cacheContext: null, log: log, token: token);
         }
 
+        public Task<T> ProcessStreamAsync<T>(
+            HttpSourceRequest request,
+            Func<Stream, Task<T>> processAsync,
+            ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
+            CancellationToken token)
+        {
+            return ProcessStreamAsync<T>(request, processAsync, cacheContext: null, log, protocolDiagonstics, token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public async Task<T> ProcessStreamAsync<T>(
             HttpSourceRequest request,
             Func<Stream, Task<T>> processAsync,
@@ -223,13 +251,78 @@ namespace NuGet.Protocol
                 token);
         }
 
+        public async Task<T> ProcessStreamAsync<T>(
+            HttpSourceRequest request,
+            Func<Stream, Task<T>> processAsync,
+            SourceCacheContext cacheContext,
+            ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
+            CancellationToken token)
+        {
+            return await ProcessResponseAsync(
+                request,
+                async response =>
+                {
+                    if ((request.IgnoreNotFounds && response.StatusCode == HttpStatusCode.NotFound) ||
+                         response.StatusCode == HttpStatusCode.NoContent)
+                    {
+                        return await processAsync(null);
+                    }
+
+                    response.EnsureSuccessStatusCode();
+
+                    var networkStream = await response.Content.ReadAsStreamAsync();
+                    return await processAsync(networkStream);
+                },
+                cacheContext,
+                log,
+                protocolDiagonstics,
+                token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<T> ProcessResponseAsync<T>(
             HttpSourceRequest request,
             Func<HttpResponseMessage, Task<T>> processAsync,
             ILogger log,
             CancellationToken token)
         {
-            return ProcessResponseAsync(request, processAsync, cacheContext: null, log: log, token: token);
+            return ProcessResponseAsync(request,
+                processAsync,
+                cacheContext: null,
+                log: log,
+                token: token);
+        }
+
+        public Task<T> ProcessResponseAsync<T>(
+            HttpSourceRequest request,
+            Func<HttpResponseMessage, Task<T>> processAsync,
+            ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
+            CancellationToken token)
+        {
+            return ProcessResponseAsync(request,
+                processAsync,
+                cacheContext: null,
+                log: log,
+                protocolDiagonstics: protocolDiagonstics,
+                token: token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<T> ProcessResponseAsync<T>(
+            HttpSourceRequest request,
+            Func<HttpResponseMessage, Task<T>> processAsync,
+            SourceCacheContext cacheContext,
+            ILogger log,
+            CancellationToken token)
+        {
+            return ProcessResponseAsync<T>(request,
+                processAsync,
+                cacheContext,
+                log,
+                NullProtocolDiagnostics.Instance,
+                token);
         }
 
         public async Task<T> ProcessResponseAsync<T>(
@@ -237,6 +330,7 @@ namespace NuGet.Protocol
             Func<HttpResponseMessage, Task<T>> processAsync,
             SourceCacheContext cacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
             CancellationToken token)
         {
             // Generate a new session id if no cache context was provided.
@@ -249,6 +343,7 @@ namespace NuGet.Protocol
                 request.MaxTries,
                 sessionId,
                 log,
+                protocolDiagonstics,
                 token);
 
             using (var throttledResponse = await throttledResponseFactory())
@@ -257,6 +352,7 @@ namespace NuGet.Protocol
             }
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public async Task<JObject> GetJObjectAsync(HttpSourceRequest request, ILogger log, CancellationToken token)
         {
             return await ProcessStreamAsync(
@@ -274,6 +370,27 @@ namespace NuGet.Protocol
                 token: token);
         }
 
+        public async Task<JObject> GetJObjectAsync(HttpSourceRequest request,
+            ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
+            CancellationToken token)
+        {
+            return await ProcessStreamAsync(
+                request,
+                processAsync: stream =>
+                {
+                    if (stream == null)
+                    {
+                        return Task.FromResult<JObject>(null);
+                    }
+
+                    return stream.AsJObjectAsync(token);
+                },
+                log,
+                protocolDiagonstics,
+                token);
+        }
+
         private async Task<ThrottledResponse> GetThrottledResponse(
             Func<HttpRequestMessage> requestFactory,
             TimeSpan requestTimeout,
@@ -281,6 +398,7 @@ namespace NuGet.Protocol
             int maxTries,
             Guid sessionId,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             await EnsureHttpClientAsync();
@@ -302,7 +420,7 @@ namespace NuGet.Protocol
             HttpResponseMessage response;
             try
             {
-                response = await RetryHandler.SendAsync(request, log, cancellationToken);
+                response = await RetryHandler.SendAsync(request, log, _packageSource.Source, protocolDiagnostics, cancellationToken);
             }
             catch
             {
@@ -379,12 +497,24 @@ namespace NuGet.Protocol
             return CachingUtility.ReadCacheFile(maxAge, cacheFile);
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public static HttpSource Create(SourceRepository source)
         {
-            return Create(source, NullThrottle.Instance);
+            return Create(source, NullProtocolDiagnostics.Instance);
         }
 
+        public static HttpSource Create(SourceRepository source, IProtocolDiagnostics protocolDiagnostics)
+        {
+            return Create(source, NullThrottle.Instance, protocolDiagnostics);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public static HttpSource Create(SourceRepository source, IThrottle throttle)
+        {
+            return Create(source, throttle, NullProtocolDiagnostics.Instance);
+        }
+
+        public static HttpSource Create(SourceRepository source, IThrottle throttle, IProtocolDiagnostics protocolDiagnostics)
         {
             if (source == null)
             {
@@ -396,7 +526,7 @@ namespace NuGet.Protocol
                 throw new ArgumentNullException(nameof(throttle));
             }
 
-            Func<Task<HttpHandlerResource>> factory = () => source.GetResourceAsync<HttpHandlerResource>();
+            Func<Task<HttpHandlerResource>> factory = () => source.GetResourceAsync<HttpHandlerResource>(protocolDiagnostics);
 
             return new HttpSource(source.PackageSource, factory, throttle);
         }

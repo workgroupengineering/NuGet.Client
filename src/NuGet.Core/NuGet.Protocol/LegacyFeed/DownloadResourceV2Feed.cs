@@ -25,11 +25,13 @@ namespace NuGet.Protocol
             _feedParser = feedParser;
         }
 
+
         public override async Task<DownloadResourceResult> GetDownloadResourceResultAsync(
             PackageIdentity identity,
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (identity == null)
@@ -66,6 +68,7 @@ namespace NuGet.Protocol
                         downloadContext,
                         globalPackagesFolder,
                         logger,
+                        protocolDiagnostics,
                         token);
                 }
                 else
@@ -79,6 +82,7 @@ namespace NuGet.Protocol
                         globalPackagesFolder,
                         sourceCacheContext,
                         logger,
+                        protocolDiagnostics,
                         token);
                     }
                 }

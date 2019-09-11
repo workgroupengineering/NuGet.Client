@@ -32,6 +32,7 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             // All packages are considered listed within a local repo
@@ -52,6 +53,7 @@ namespace NuGet.Protocol
             PackageIdentity package,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return Task.Run<IPackageSearchMetadata>(() =>

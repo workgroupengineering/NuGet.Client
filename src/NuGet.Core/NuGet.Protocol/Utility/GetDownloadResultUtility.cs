@@ -19,13 +19,35 @@ namespace NuGet.Protocol
         private const string DirectDownloadExtension = ".nugetdirectdownload";
         private const string DirectDownloadPattern = "*" + DirectDownloadExtension;
 
-        public static async Task<DownloadResourceResult> GetDownloadResultAsync(
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<DownloadResourceResult> GetDownloadResultAsync(
            HttpSource client,
            PackageIdentity identity,
            Uri uri,
            PackageDownloadContext downloadContext,
            string globalPackagesFolder,
            ILogger logger,
+           CancellationToken token)
+        {
+            return GetDownloadResultAsync(client,
+                identity,
+                uri,
+                downloadContext,
+                globalPackagesFolder,
+                logger,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
+        public async static Task<DownloadResourceResult> GetDownloadResultAsync(
+           HttpSource client,
+           PackageIdentity identity,
+           Uri uri,
+           PackageDownloadContext downloadContext,
+           string globalPackagesFolder,
+           ILogger logger,
+           IProtocolDiagnostics protocolDiagnostics,
            CancellationToken token)
         {
             // Observe the NoCache argument.
@@ -100,6 +122,7 @@ namespace NuGet.Protocol
                         },
                         downloadContext.SourceCacheContext,
                         logger,
+                        protocolDiagnostics,
                         token);
                 }
                 catch (OperationCanceledException)

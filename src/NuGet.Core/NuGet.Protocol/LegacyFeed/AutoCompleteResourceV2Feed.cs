@@ -40,6 +40,7 @@ namespace NuGet.Protocol
             string packageIdPrefix,
             bool includePrerelease,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var apiEndpointUri = new UriBuilder(new Uri(_baseUri, @"package-ids"))
@@ -47,7 +48,7 @@ namespace NuGet.Protocol
                 Query = $"partialId={packageIdPrefix}&includePrerelease={includePrerelease}&semVerLevel=2.0.0"
             };
 
-            return await GetResults(apiEndpointUri.Uri, log, token);
+            return await GetResults(apiEndpointUri.Uri, log, protocolDiagnostics, token);
         }
 
         public override async Task<IEnumerable<NuGetVersion>> VersionStartsWith(
@@ -56,6 +57,7 @@ namespace NuGet.Protocol
             bool includePrerelease,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagonstics,
             CancellationToken token)
         {
             var apiEndpointUri = new UriBuilder(new Uri(_baseUri, @"package-versions/" + packageId))
@@ -63,7 +65,7 @@ namespace NuGet.Protocol
                 Query = $"includePrerelease={includePrerelease}&semVerLevel=2.0.0"
             };
 
-            var results = await GetResults(apiEndpointUri.Uri, log, token);
+            var results = await GetResults(apiEndpointUri.Uri, log, protocolDiagonstics, token);
             var versions = results.ToList();
             versions = versions
                 .Where(item => item.StartsWith(versionPrefix, StringComparison.OrdinalIgnoreCase))
@@ -75,6 +77,7 @@ namespace NuGet.Protocol
         private async Task<IEnumerable<string>> GetResults(
             Uri apiEndpointUri,
             Common.ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return await _httpSource.ProcessStreamAsync(
@@ -90,6 +93,7 @@ namespace NuGet.Protocol
                        }
                    },
                    logger,
+                   protocolDiagnostics,
                    token);
         }
     }

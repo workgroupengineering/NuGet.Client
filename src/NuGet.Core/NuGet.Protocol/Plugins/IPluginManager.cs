@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol.Plugins
@@ -19,8 +20,21 @@ namespace NuGet.Protocol.Plugins
         /// <param name="cancellationToken"></param>
         /// <exception cref="ArgumentNullException">Throw if <paramref name="source"/> is null </exception>
         /// <returns>PluginCreationResults</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         Task<IEnumerable<PluginCreationResult>> CreatePluginsAsync(
             SourceRepository source,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Create plugins appropriate for the given source
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="cancellationToken"></param>
+        /// <exception cref="ArgumentNullException">Throw if <paramref name="source"/> is null </exception>
+        /// <returns>PluginCreationResults</returns>
+        Task<IEnumerable<PluginCreationResult>> CreatePluginsAsync(
+            SourceRepository source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken);
 
         /// <summary>

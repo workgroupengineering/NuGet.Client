@@ -1,12 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Protocol.Core.Types;
 using System.Globalization;
+using NuGet.Common;
 
 namespace NuGet.Protocol
 {
@@ -21,11 +21,12 @@ namespace NuGet.Protocol
 
         public override async Task<Tuple<bool, INuGetResource>> TryCreate(
             SourceRepository source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             PackageUpdateResource packageUpdateResource = null;
 
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
 
             if (serviceIndex != null)
             {
@@ -37,7 +38,7 @@ namespace NuGet.Protocol
                 {
                     if (!(new Uri(sourceUri)).IsFile)
                     {
-                        var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
+                        var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
                         httpSource = httpSourceResource.HttpSource;
                     }
                     packageUpdateResource = new PackageUpdateResource(sourceUri, httpSource);

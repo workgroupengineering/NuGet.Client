@@ -20,17 +20,17 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             RepositorySignatureResource resource = null;
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
             if (serviceIndex != null)
             {
                 var serviceEntry = serviceIndex.GetServiceEntries(ServiceTypes.RepositorySignatures).FirstOrDefault();
 
                 if (serviceEntry != null)
                 {
-                    resource = await GetRepositorySignatureResourceAsync(source, serviceEntry, NullLogger.Instance, token);
+                    resource = await GetRepositorySignatureResourceAsync(source, serviceEntry, NullLogger.Instance, protocolDiagnostics, token);
                 }
             }
 
@@ -41,6 +41,7 @@ namespace NuGet.Protocol
             SourceRepository source,
             ServiceIndexEntry serviceEntry,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var repositorySignaturesResourceUri = serviceEntry.Uri;
@@ -50,7 +51,7 @@ namespace NuGet.Protocol
                 throw new FatalProtocolException(string.Format(CultureInfo.CurrentCulture, Strings.RepositorySignaturesResourceMustBeHttps, source.PackageSource.Source));
             }
 
-            var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
+            var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
             var client = httpSourceResource.HttpSource;
             var cacheKey = GenerateCacheKey(serviceEntry);
 
@@ -78,6 +79,7 @@ namespace NuGet.Protocol
                                 return new RepositorySignatureResource(json, source);
                             },
                             log,
+                            protocolDiagnostics,
                             token);
                     }
                     catch (Exception ex) when (retry < 2)

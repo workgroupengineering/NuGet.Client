@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
@@ -37,6 +38,7 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var results = new List<KeyValuePair<string, NuGetVersion>>();
@@ -46,7 +48,7 @@ namespace NuGet.Protocol
                 IEnumerable<NuGetVersion> allVersions;
                 try
                 {
-                    var catalogEntries = await _regResource.GetPackageMetadata(id, includePrerelease, includeUnlisted, sourceCacheContext, log, token);
+                    var catalogEntries = await _regResource.GetPackageMetadata(id, includePrerelease, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token);
                     allVersions = catalogEntries.Select(p => NuGetVersion.Parse(p["version"].ToString()));
                 }
                 catch (Exception ex)
@@ -68,10 +70,11 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             // TODO: get the url and just check the headers?
-            var metadata = await _regResource.GetPackageMetadata(identity, sourceCacheContext, log, token);
+            var metadata = await _regResource.GetPackageMetadata(identity, sourceCacheContext, log, protocolDiagnostics, token);
 
             // TODO: listed check
             return metadata != null;
@@ -83,9 +86,10 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var entries = await GetVersions(packageId, includePrerelease, includeUnlisted, sourceCacheContext, log, token);
+            var entries = await GetVersions(packageId, includePrerelease, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token);
 
             return entries != null && entries.Any();
         }
@@ -96,11 +100,12 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var results = new List<NuGetVersion>();
 
-            var entries = await _regResource.GetPackageEntries(packageId, includeUnlisted, sourceCacheContext, log, token);
+            var entries = await _regResource.GetPackageEntries(packageId, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token);
 
             foreach (var catalogEntry in entries)
             {

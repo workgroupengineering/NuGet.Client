@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -39,6 +40,7 @@ namespace NuGet.Protocol
             int skip,
             int take,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             var query = await _feedParser.Search(
@@ -47,13 +49,14 @@ namespace NuGet.Protocol
                 skip,
                 take,
                 log,
+                protocolDiagnostics,
                 cancellationToken);
 
             var metadataCache = new MetadataReferenceCache();
             // NuGet.Server does not group packages by id, this resource needs to handle it.
             var results = query.GroupBy(p => p.Id)
                 .Select(group => group.OrderByDescending(p => p.Version).First())
-                .Select(package => V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, filters, _feedParser, log, cancellationToken));
+                .Select(package => V2FeedUtilities.CreatePackageSearchResult(package, metadataCache, filters, _feedParser, log, protocolDiagnostics, cancellationToken));
 
             return results.ToList();
         }

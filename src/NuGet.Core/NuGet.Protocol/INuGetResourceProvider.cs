@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 
 namespace NuGet.Protocol.Core.Types
 {
@@ -30,7 +31,19 @@ namespace NuGet.Protocol.Core.Types
         /// </remarks>
         /// <param name="source">Source repository</param>
         /// <returns>True if this provider handles the input source.</returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token);
+
+        /// <summary>
+        /// Attempts to create a resource for this source.
+        /// </summary>
+        /// <remarks>
+        /// The provider may return true but null for the resource if the
+        /// provider determines that it should not exist.
+        /// </remarks>
+        /// <param name="source">Source repository</param>
+        /// <returns>True if this provider handles the input source.</returns>
+        Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token);
 
         /// <summary>
         /// Resource type provided

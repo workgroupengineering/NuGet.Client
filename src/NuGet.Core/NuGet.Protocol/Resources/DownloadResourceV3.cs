@@ -63,7 +63,7 @@ namespace NuGet.Protocol
         /// 2. A url will be constructed for the flat container location if the source has that resource.
         /// 3. The download url will be found in the registration blob as a fallback.
         /// </summary>
-        private async Task<Uri> GetDownloadUrl(PackageIdentity identity, ILogger log, CancellationToken token)
+        private async Task<Uri> GetDownloadUrl(PackageIdentity identity, ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             Uri downloadUri = null;
             var sourcePackage = identity as SourcePackageDependencyInfo;
@@ -87,7 +87,7 @@ namespace NuGet.Protocol
                 using (var sourceCacheContext = new SourceCacheContext())
                 {
                     // Read the url from the registration information
-                    var blob = await _regResource.GetPackageMetadata(identity, sourceCacheContext, log, token);
+                    var blob = await _regResource.GetPackageMetadata(identity, sourceCacheContext, log, protocolDiagnostics, token);
 
                     if (blob != null
                         && blob["packageContent"] != null)
@@ -100,11 +100,29 @@ namespace NuGet.Protocol
             return downloadUri;
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public override Task<DownloadResourceResult> GetDownloadResourceResultAsync(
+            PackageIdentity identity,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return GetDownloadResourceResultAsync(
+                identity,
+                downloadContext,
+                globalPackagesFolder,
+                logger,
+                NullProtocolDiagnostics.Instance,
+                token);
+        }
+
         public override async Task<DownloadResourceResult> GetDownloadResourceResultAsync(
             PackageIdentity identity,
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (identity == null)
@@ -122,7 +140,7 @@ namespace NuGet.Protocol
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            var uri = await GetDownloadUrl(identity, logger, token);
+            var uri = await GetDownloadUrl(identity, logger, protocolDiagnostics, token);
 
             if (uri != null)
             {
@@ -133,6 +151,7 @@ namespace NuGet.Protocol
                     downloadContext,
                     globalPackagesFolder,
                     logger,
+                    protocolDiagnostics,
                     token);
             }
 

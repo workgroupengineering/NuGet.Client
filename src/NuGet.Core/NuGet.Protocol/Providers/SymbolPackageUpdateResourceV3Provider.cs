@@ -2,10 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -19,11 +18,11 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             SymbolPackageUpdateResourceV3 symbolPackageUpdateResource = null;
 
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
 
             if (serviceIndex != null)
             {
@@ -35,7 +34,7 @@ namespace NuGet.Protocol
                 {
                     if (!(new Uri(sourceUri)).IsFile)
                     {
-                        var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
+                        var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
                         httpSource = httpSourceResource.HttpSource;
                     }
                     symbolPackageUpdateResource = new SymbolPackageUpdateResourceV3(sourceUri, httpSource);

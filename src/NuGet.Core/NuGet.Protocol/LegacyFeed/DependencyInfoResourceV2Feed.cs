@@ -37,12 +37,13 @@ namespace NuGet.Protocol
             NuGetFramework projectFramework,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             try
             {
-                var packageInfo = await _feedParser.GetPackage(package, sourceCacheContext, log, token);
+                var packageInfo = await _feedParser.GetPackage(package, sourceCacheContext, log, protocolDiagnostics, token);
 
                 if (packageInfo == null)
                 {
@@ -65,13 +66,14 @@ namespace NuGet.Protocol
             NuGetFramework projectFramework,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
             try
             {
-                var packages = await _feedParser.FindPackagesByIdAsync(packageId, sourceCacheContext, log, token);
+                var packages = await _feedParser.FindPackagesByIdAsync(packageId, sourceCacheContext, log, protocolDiagnostics, token);
 
                 var results = new List<SourcePackageDependencyInfo>();
 

@@ -149,7 +149,27 @@ namespace NuGet.Protocol
         /// is either <c>null</c> or empty.</exception>
         /// <exception cref="OperationCanceledException">Thrown if <paramref name="cancellationToken" />
         /// is cancelled.</exception>
-        public async Task<bool> CopyNupkgFileToAsync(string destinationFilePath, CancellationToken cancellationToken)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<bool> CopyNupkgFileToAsync(string destinationFilePath, CancellationToken cancellationToken)
+        {
+            return CopyNupkgFileToAsync(destinationFilePath, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously copies a .nupkg to a target file path.
+        /// </summary>
+        /// <param name="destinationFilePath">The destination file path.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="bool" />
+        /// indicating whether or not the copy was successful.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown if this object is disposed.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="destinationFilePath" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="OperationCanceledException">Thrown if <paramref name="cancellationToken" />
+        /// is cancelled.</exception>
+        public async Task<bool> CopyNupkgFileToAsync(string destinationFilePath, IProtocolDiagnostics protocolDiagnostics, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
 
@@ -180,6 +200,7 @@ namespace NuGet.Protocol
                         destination,
                         _cacheContext,
                         _logger,
+                        protocolDiagnostics,
                         cancellationToken);
 
                     _destinationFilePath = destinationFilePath;

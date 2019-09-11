@@ -78,6 +78,7 @@ namespace NuGet.Protocol
         /// <param name="id">A package ID.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -92,6 +93,7 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -111,7 +113,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             return packageInfos.Keys;
         }
@@ -123,6 +125,7 @@ namespace NuGet.Protocol
         /// <param name="version">A package version.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -139,6 +142,7 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -163,7 +167,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             PackageInfo packageInfo;
             if (packageInfos.TryGetValue(version, out packageInfo))
@@ -173,6 +177,7 @@ namespace NuGet.Protocol
                     packageInfo.ContentUri,
                     cacheContext,
                     logger,
+                    protocolDiagnostics,
                     cancellationToken);
 
                 return GetDependencyInfo(reader);
@@ -189,6 +194,7 @@ namespace NuGet.Protocol
         /// <param name="destination">A destination stream.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -207,6 +213,7 @@ namespace NuGet.Protocol
             Stream destination,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -236,7 +243,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             PackageInfo packageInfo;
             if (packageInfos.TryGetValue(version, out packageInfo))
@@ -247,6 +254,7 @@ namespace NuGet.Protocol
                     destination,
                     cacheContext,
                     logger,
+                    protocolDiagnostics,
                     cancellationToken);
             }
 
@@ -259,6 +267,7 @@ namespace NuGet.Protocol
         /// <param name="packageIdentity">A package identity.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an <see cref="IPackageDownloader" />.</returns>
@@ -271,6 +280,7 @@ namespace NuGet.Protocol
             PackageIdentity packageIdentity,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (packageIdentity == null)
@@ -290,7 +300,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfos = await EnsurePackagesAsync(packageIdentity.Id, cacheContext, logger, cancellationToken);
+            var packageInfos = await EnsurePackagesAsync(packageIdentity.Id, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             PackageInfo packageInfo;
             if (packageInfos.TryGetValue(packageIdentity.Version, out packageInfo))
@@ -308,6 +318,7 @@ namespace NuGet.Protocol
         /// <param name="version">A package version.</param>
         /// <param name="cacheContext">A source cache context.</param>
         /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns an
@@ -324,6 +335,7 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -348,7 +360,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             return packageInfos.TryGetValue(version, out var packageInfo);
         }
@@ -357,6 +369,7 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             AsyncLazy<SortedDictionary<NuGetVersion, PackageInfo>> result = null;
@@ -367,6 +380,7 @@ namespace NuGet.Protocol
                         keyId,
                         cacheContext,
                         logger,
+                        protocolDiagnostics,
                         cancellationToken));
 
             if (cacheContext.RefreshMemoryCache)
@@ -387,6 +401,7 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             // Try each base URI 3 times.
@@ -436,6 +451,7 @@ namespace NuGet.Protocol
                             return result;
                         },
                         logger,
+                        protocolDiagnostics,
                         cancellationToken);
                 }
                 catch (Exception ex) when (retry < 2)

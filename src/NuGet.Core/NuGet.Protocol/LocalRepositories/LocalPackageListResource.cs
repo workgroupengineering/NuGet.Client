@@ -1,7 +1,6 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -23,7 +22,7 @@ namespace NuGet.Protocol
         public override string Source => _baseAddress;
 
         public override Task<IEnumerableAsync<IPackageSearchMetadata>> ListAsync(string searchTerm, bool prerelease, bool allVersions, bool includeDelisted, ILogger logger,
-            CancellationToken token)
+            IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             SearchFilter filter;
 
@@ -52,7 +51,7 @@ namespace NuGet.Protocol
                 };
             }
             IEnumerableAsync<IPackageSearchMetadata> enumerable = new EnumerableAsync<IPackageSearchMetadata>(_localPackageSearchResource, searchTerm, filter,
-                logger, token);
+                logger, protocolDiagnostics, token);
             return Task.FromResult(enumerable);
 
         }
@@ -61,23 +60,25 @@ namespace NuGet.Protocol
         {
             private readonly SearchFilter _filter;
             private readonly ILogger _logger;
+            private readonly IProtocolDiagnostics _protocolDiagnostics;
             private readonly string _searchTerm;
             private readonly CancellationToken _token;
             private readonly PackageSearchResource _packageSearchResource;
 
 
-            public EnumerableAsync(PackageSearchResource feedParser, string searchTerm, SearchFilter filter, ILogger logger, CancellationToken token)
+            public EnumerableAsync(PackageSearchResource feedParser, string searchTerm, SearchFilter filter, ILogger logger, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
             {
                 _packageSearchResource = feedParser;
                 _searchTerm = searchTerm;
                 _filter = filter;
                 _logger = logger;
+                _protocolDiagnostics = protocolDiagnostics;
                 _token = token;
             }
 
             public IEnumeratorAsync<T> GetEnumeratorAsync()
             {
-                return (IEnumeratorAsync<T>)new EnumeratorAsync(_packageSearchResource, _searchTerm, _filter, _logger, _token);
+                return (IEnumeratorAsync<T>)new EnumeratorAsync(_packageSearchResource, _searchTerm, _filter, _logger, _protocolDiagnostics, _token);
             }
         }
 
@@ -85,6 +86,7 @@ namespace NuGet.Protocol
         {
             private readonly SearchFilter _filter;
             private readonly ILogger _logger;
+            private readonly IProtocolDiagnostics _protocolDiagnostics;
             private readonly string _searchTerm;
             private readonly CancellationToken _token;
             private readonly PackageSearchResource _packageSearchResource;
@@ -92,12 +94,13 @@ namespace NuGet.Protocol
 
             private IEnumerator<IPackageSearchMetadata> _currentEnumerator;
 
-            public EnumeratorAsync(PackageSearchResource feedParser, string searchTerm, SearchFilter filter, ILogger logger, CancellationToken token)
+            public EnumeratorAsync(PackageSearchResource feedParser, string searchTerm, SearchFilter filter, ILogger logger, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
             {
                 _packageSearchResource = feedParser;
                 _searchTerm = searchTerm;
                 _filter = filter;
                 _logger = logger;
+                _protocolDiagnostics = protocolDiagnostics;
                 _token = token;
             }
 
@@ -115,7 +118,7 @@ namespace NuGet.Protocol
                 { // NOTE: We need to sort the values so this is very innefficient by design. 
                   // The FS search resource would return the results ordered in FS nat ordering.
                     var results = await _packageSearchResource.SearchAsync(
-                        _searchTerm, _filter, 0, int.MaxValue, _logger, _token);
+                        _searchTerm, _filter, 0, int.MaxValue, _logger, _protocolDiagnostics, _token);
                     switch (_filter.OrderBy)
                     {
                         case SearchOrderBy.Id:

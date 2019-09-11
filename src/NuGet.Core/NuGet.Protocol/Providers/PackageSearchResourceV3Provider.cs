@@ -4,8 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
-using NuGet.Protocol;
 
 namespace NuGet.Protocol
 {
@@ -16,14 +16,14 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             PackageSearchResourceV3 curResource = null;
-            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(token);
+            var serviceIndex = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token);
 
             if (serviceIndex != null)
             {
-                var rawSearch = await source.GetResourceAsync<RawSearchResourceV3>(token);
+                var rawSearch = await source.GetResourceAsync<RawSearchResourceV3>(protocolDiagnostics, token);
 
                 curResource = new PackageSearchResourceV3(rawSearch);
             }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
@@ -12,6 +13,7 @@ namespace NuGet.Protocol
 {
     public class V2FeedUtilities
     {
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public static IPackageSearchMetadata CreatePackageSearchResult(
           V2FeedPackageInfo package,
           MetadataReferenceCache metadataCache,
@@ -20,9 +22,21 @@ namespace NuGet.Protocol
           Common.ILogger log,
           CancellationToken cancellationToken)
         {
+            return CreatePackageSearchResult(package, metadataCache, filter, feedParser, log, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        public static IPackageSearchMetadata CreatePackageSearchResult(
+          V2FeedPackageInfo package,
+          MetadataReferenceCache metadataCache,
+          SearchFilter filter,
+          V2FeedParser feedParser,
+          Common.ILogger log,
+          IProtocolDiagnostics protocolDiagnostics,
+          CancellationToken cancellationToken)
+        {
             var metadata = new PackageSearchMetadataV2Feed(package, metadataCache);
             return metadata
-                .WithVersions(() => GetVersions(package, metadataCache, filter, feedParser, log, cancellationToken));
+                .WithVersions(() => GetVersions(package, metadataCache, filter, feedParser, log, protocolDiagnostics, cancellationToken));
         }
 
         private static async Task<IEnumerable<VersionInfo>> GetVersions(
@@ -31,6 +45,7 @@ namespace NuGet.Protocol
             SearchFilter filter,
             V2FeedParser feedParser,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -48,6 +63,7 @@ namespace NuGet.Protocol
                     filter.IncludePrerelease,
                     sourceCacheContext,
                     log,
+                    protocolDiagnostics,
                     cancellationToken);
 
                 var uniqueVersions = new HashSet<NuGetVersion>();

@@ -1,10 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
-using System.Globalization;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -32,7 +30,7 @@ namespace NuGet.Protocol
             _cache = new ConcurrentDictionary<string, ODataServiceDocumentCacheInfo>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             ODataServiceDocumentResourceV2 serviceDocument = null;
             ODataServiceDocumentCacheInfo cacheInfo = null;
@@ -56,8 +54,8 @@ namespace NuGet.Protocol
                     // check the cache again, another thread may have finished this one waited for the lock
                     if (!_cache.TryGetValue(url, out cacheInfo) || entryValidCutoff > cacheInfo.CachedTime)
                     {
-                        var client = (await source.GetResourceAsync<HttpSourceResource>(token)).HttpSource;
-                        serviceDocument = await ODataServiceDocumentUtils.CreateODataServiceDocumentResourceV2(url,client, utcNow, NullLogger.Instance, token);
+                        var client = (await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token)).HttpSource;
+                        serviceDocument = await ODataServiceDocumentUtils.CreateODataServiceDocumentResourceV2(url,client, utcNow, NullLogger.Instance, protocolDiagnostics, token);
 
                         // cache the value even if it is null to avoid checking it again later
                         var cacheEntry = new ODataServiceDocumentCacheInfo

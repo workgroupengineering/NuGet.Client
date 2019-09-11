@@ -4,8 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
-using NuGet.Protocol;
 
 namespace NuGet.Protocol
 {
@@ -16,17 +16,17 @@ namespace NuGet.Protocol
         {
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             PackageMetadataResourceV3 curResource = null;
 
-            if (await source.GetResourceAsync<ServiceIndexResourceV3>(token) != null)
+            if (await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, token) != null)
             {
-                var regResource = await source.GetResourceAsync<RegistrationResourceV3>();
-                var reportAbuseResource = await source.GetResourceAsync<ReportAbuseResourceV3>();
-                var packageDetailsUriResource = await source.GetResourceAsync<PackageDetailsUriResourceV3>();
+                var regResource = await source.GetResourceAsync<RegistrationResourceV3>(protocolDiagnostics);
+                var reportAbuseResource = await source.GetResourceAsync<ReportAbuseResourceV3>(protocolDiagnostics);
+                var packageDetailsUriResource = await source.GetResourceAsync<PackageDetailsUriResourceV3>(protocolDiagnostics);
 
-                var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
+                var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
 
                 // construct a new resource
                 curResource = new PackageMetadataResourceV3(

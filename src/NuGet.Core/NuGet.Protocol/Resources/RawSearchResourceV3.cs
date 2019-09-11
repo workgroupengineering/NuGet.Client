@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Protocol
@@ -36,7 +37,13 @@ namespace NuGet.Protocol
             _searchEndpoints = searchEndpoints.ToArray();
         }
 
-        public virtual async Task<JObject> SearchPage(string searchTerm, SearchFilter filters, int skip, int take, Common.ILogger log, CancellationToken cancellationToken)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<JObject> SearchPage(string searchTerm, SearchFilter filters, int skip, int take, Common.ILogger log, CancellationToken cancellationToken)
+        {
+            return SearchPage(searchTerm, filters, skip, take, log, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        public virtual async Task<JObject> SearchPage(string searchTerm, SearchFilter filters, int skip, int take, Common.ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken cancellationToken)
         {
             for (var i = 0; i < _searchEndpoints.Length; i++)
             {
@@ -84,6 +91,7 @@ namespace NuGet.Protocol
                     searchJson = await _client.GetJObjectAsync(
                         new HttpSourceRequest(queryUrl.Uri, log),
                         log,
+                        protocolDiagnostics,
                         cancellationToken);
                 }
                 catch (OperationCanceledException)
@@ -113,9 +121,15 @@ namespace NuGet.Protocol
             throw new FatalProtocolException(Strings.Protocol_MissingSearchService);
         }
 
-        public virtual async Task<IEnumerable<JObject>> Search(string searchTerm, SearchFilter filters, int skip, int take, Common.ILogger log, CancellationToken cancellationToken)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<IEnumerable<JObject>> Search(string searchTerm, SearchFilter filters, int skip, int take, Common.ILogger log, CancellationToken cancellationToken)
         {
-            var results = await SearchPage(searchTerm, filters, skip, take, log, cancellationToken);
+            return Search(searchTerm, filters, skip, take, log, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        public virtual async Task<IEnumerable<JObject>> Search(string searchTerm, SearchFilter filters, int skip, int take, Common.ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken cancellationToken)
+        {
+            var results = await SearchPage(searchTerm, filters, skip, take, log, protocolDiagnostics, cancellationToken);
 
             var data = results[JsonProperties.Data] as JArray ?? Enumerable.Empty<JToken>();
             return data.OfType<JObject>();

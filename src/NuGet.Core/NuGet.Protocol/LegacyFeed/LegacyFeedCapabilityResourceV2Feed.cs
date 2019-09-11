@@ -41,30 +41,30 @@ namespace NuGet.Protocol
                 baseAddress);
         }
 
-        public override async Task<bool> SupportsIsAbsoluteLatestVersionAsync(ILogger log, CancellationToken token)
+        public override async Task<bool> SupportsIsAbsoluteLatestVersionAsync(ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
-            var capabilities = await GetCachedCapabilitiesAsync(log, token);
+            var capabilities = await GetCachedCapabilitiesAsync(log, protocolDiagnostics, token);
 
             return capabilities.SupportsIsAbsoluteLatestVersion;
         }
 
-        public override async Task<bool> SupportsSearchAsync(ILogger log, CancellationToken token)
+        public override async Task<bool> SupportsSearchAsync(ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
-            var capabilities = await GetCachedCapabilitiesAsync(log, token);
+            var capabilities = await GetCachedCapabilitiesAsync(log, protocolDiagnostics, token);
 
             return capabilities.SupportsSearch;
         }
 
-        private async Task<Capabilities> GetCachedCapabilitiesAsync(ILogger log, CancellationToken token)
+        private async Task<Capabilities> GetCachedCapabilitiesAsync(ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var task = CachedCapabilities.GetOrAdd(
                 _metadataUri,
-                key => GetCapabilitiesAsync(key, log, token));
+                key => GetCapabilitiesAsync(key, log, protocolDiagnostics, token));
 
             return await task;
         }
 
-        private async Task<Capabilities> GetCapabilitiesAsync(string metadataUri, ILogger log, CancellationToken token)
+        private async Task<Capabilities> GetCapabilitiesAsync(string metadataUri, ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var capabilities = new Capabilities
             {
@@ -80,8 +80,9 @@ namespace NuGet.Protocol
                     cacheKey: null,
                     ignoreNotFounds: true,
                     sourceCacheContext: null,
-                    log: log,
-                    token: token);
+                    log,
+                    protocolDiagnostics,
+                    token);
 
                 var metadata = DataServiceMetadataExtractor.Extract(document);
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -11,9 +11,18 @@ namespace NuGet.Protocol
 {
     public interface IHttpRetryHandler
     {
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         Task<HttpResponseMessage> SendAsync(
             HttpRetryHandlerRequest request,
             ILogger log,
+            CancellationToken cancellationToken);
+
+        Task<HttpResponseMessage> SendAsync(
+            HttpRetryHandlerRequest request,
+            ILogger log,
+            string source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken);
     }
 }

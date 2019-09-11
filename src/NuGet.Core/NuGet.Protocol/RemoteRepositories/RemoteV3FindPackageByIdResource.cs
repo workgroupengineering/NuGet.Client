@@ -81,6 +81,7 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -100,7 +101,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var result = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+            var result = await EnsurePackagesAsync(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             return result.Select(item => item.Identity.Version);
         }
@@ -128,6 +129,7 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -152,7 +154,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfo = await GetPackageInfoAsync(id, version, cacheContext, logger, cancellationToken);
+            var packageInfo = await GetPackageInfoAsync(id, version, cacheContext, logger, protocolDiagnostics, cancellationToken);
             if (packageInfo == null)
             {
                 return null;
@@ -163,6 +165,7 @@ namespace NuGet.Protocol
                 packageInfo.ContentUri,
                 cacheContext,
                 logger,
+                protocolDiagnostics,
                 cancellationToken);
 
             return GetDependencyInfo(reader);
@@ -194,6 +197,7 @@ namespace NuGet.Protocol
             Stream destination,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -223,7 +227,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfo = await GetPackageInfoAsync(id, version, cacheContext, logger, cancellationToken);
+            var packageInfo = await GetPackageInfoAsync(id, version, cacheContext, logger, protocolDiagnostics, cancellationToken);
             if (packageInfo == null)
             {
                 return false;
@@ -235,6 +239,7 @@ namespace NuGet.Protocol
                 destination,
                 cacheContext,
                 logger,
+                protocolDiagnostics,
                 cancellationToken);
         }
 
@@ -256,6 +261,7 @@ namespace NuGet.Protocol
             PackageIdentity packageIdentity,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (packageIdentity == null)
@@ -280,6 +286,7 @@ namespace NuGet.Protocol
                 packageIdentity.Version,
                 cacheContext,
                 logger,
+                protocolDiagnostics,
                 cancellationToken);
 
             if (packageInfo == null)
@@ -313,6 +320,7 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(id))
@@ -337,7 +345,7 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfo = await GetPackageInfoAsync(id, version, cacheContext, logger, cancellationToken);
+            var packageInfo = await GetPackageInfoAsync(id, version, cacheContext, logger, protocolDiagnostics, cancellationToken);
 
             return packageInfo != null;
         }
@@ -347,9 +355,10 @@ namespace NuGet.Protocol
             NuGetVersion version,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
-            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+            var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
             return packageInfos.FirstOrDefault(p => p.Identity.Version == version);
         }
 
@@ -357,6 +366,7 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             Task<IEnumerable<RemoteSourceDependencyInfo>> task;
@@ -365,7 +375,7 @@ namespace NuGet.Protocol
             {
                 if (cacheContext.RefreshMemoryCache || !_packageVersionsCache.TryGetValue(id, out task))
                 {
-                    task = FindPackagesByIdAsyncCore(id, cacheContext, logger, cancellationToken);
+                    task = FindPackagesByIdAsyncCore(id, cacheContext, logger, protocolDiagnostics, cancellationToken);
                     _packageVersionsCache[id] = task;
                 }
             }
@@ -377,15 +387,16 @@ namespace NuGet.Protocol
             string id,
             SourceCacheContext sourceCacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             // This is invoked from inside a lock.
-            await EnsureDependencyProvider(cancellationToken);
+            await EnsureDependencyProvider(protocolDiagnostics, cancellationToken);
 
-            return await _dependencyInfoResource.ResolvePackages(id, sourceCacheContext, logger, cancellationToken);
+            return await _dependencyInfoResource.ResolvePackages(id, sourceCacheContext, logger, protocolDiagnostics, cancellationToken);
         }
 
-        private async Task EnsureDependencyProvider(CancellationToken cancellationToken)
+        private async Task EnsureDependencyProvider(IProtocolDiagnostics protocolDiagnostics, CancellationToken cancellationToken)
         {
             if (_dependencyInfoResource == null)
             {
@@ -394,7 +405,7 @@ namespace NuGet.Protocol
                     await _dependencyInfoSemaphore.WaitAsync(cancellationToken);
                     if (_dependencyInfoResource == null)
                     {
-                        _dependencyInfoResource = await SourceRepository.GetResourceAsync<DependencyInfoResource>();
+                        _dependencyInfoResource = await SourceRepository.GetResourceAsync<DependencyInfoResource>(protocolDiagnostics);
                     }
                 }
                 finally

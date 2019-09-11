@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 
@@ -36,12 +37,13 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var metadataCache = new MetadataReferenceCache();
 
             var packages =
-                (await _regResource.GetPackageMetadata(packageId, includePrerelease, includeUnlisted, sourceCacheContext, log, token))
+                (await _regResource.GetPackageMetadata(packageId, includePrerelease, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token))
                     .Select(ParseMetadata)
                     .Select(m => metadataCache.GetObject(m))
                     .ToArray();
@@ -53,9 +55,10 @@ namespace NuGet.Protocol
             PackageIdentity package,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var metadata = await _regResource.GetPackageMetadata(package, sourceCacheContext, log, token);
+            var metadata = await _regResource.GetPackageMetadata(package, sourceCacheContext, log, protocolDiagnostics, token);
             if (metadata != null)
             {
                 return ParseMetadata(metadata);

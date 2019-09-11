@@ -18,6 +18,7 @@ static internal class ODataServiceDocumentUtils
         HttpSource client,
         DateTime utcNow,
         ILogger log,
+        IProtocolDiagnostics protocolDiagnostics,
         CancellationToken token)
     {
         // Get the service document and record the URL after any redirects.
@@ -36,6 +37,7 @@ static internal class ODataServiceDocumentUtils
                     return Task.FromResult(response.RequestMessage.RequestUri.ToString());
                 },
                 log,
+                protocolDiagnostics,
                 token);
         }
         catch (Exception ex) when (!(ex is FatalProtocolException) && (!(ex is OperationCanceledException)))

@@ -34,6 +34,7 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var results = new List<KeyValuePair<string, NuGetVersion>>();
@@ -43,7 +44,7 @@ namespace NuGet.Protocol
             // fetch all ids in parallel
             foreach (var id in packageIds)
             {
-                var task = new KeyValuePair<string, Task<IEnumerable<NuGetVersion>>>(id, GetVersions(id, includePrerelease, includeUnlisted, sourceCacheContext, log, token));
+                var task = new KeyValuePair<string, Task<IEnumerable<NuGetVersion>>>(id, GetVersions(id, includePrerelease, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token));
                 tasks.Push(task);
             }
 
@@ -75,6 +76,7 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -105,6 +107,7 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -118,6 +121,7 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();

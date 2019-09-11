@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 
 namespace NuGet.Protocol.Core.Types
 {
@@ -85,7 +86,18 @@ namespace NuGet.Protocol.Core.Types
             get { return _resourceType; }
         }
 
-        public abstract Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token);
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        {
+            return TryCreate(source, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public virtual Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
+        {
+#pragma warning disable CS0618 // For backwards compatibility
+            return TryCreate(source, token);
+#pragma warning restore CS0618 // For backwards compatibility
+        }
 
         private static IEnumerable<string> ToArray(string s)
         {

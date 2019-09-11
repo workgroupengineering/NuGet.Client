@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 using NuGet.Protocol.Plugins;
 
@@ -28,6 +29,7 @@ namespace NuGet.Protocol
         /// Asynchronously attempts to create a resource for the specified source repository.
         /// </summary>
         /// <param name="source">A source repository.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns a Tuple&lt;bool, INuGetResource&gt;</returns>
@@ -36,6 +38,7 @@ namespace NuGet.Protocol
         /// is cancelled.</exception>
         public override async Task<Tuple<bool, INuGetResource>> TryCreate(
             SourceRepository source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (source == null)
@@ -47,12 +50,12 @@ namespace NuGet.Protocol
 
             PluginFindPackageByIdResource resource = null;
 
-            var pluginResource = await source.GetResourceAsync<PluginResource>(cancellationToken);
+            var pluginResource = await source.GetResourceAsync<PluginResource>(protocolDiagnostics, cancellationToken);
 
             if (pluginResource != null)
             {
-                var serviceIndexResource = await source.GetResourceAsync<ServiceIndexResourceV3>(cancellationToken);
-                var httpHandlerResource = await source.GetResourceAsync<HttpHandlerResource>(cancellationToken);
+                var serviceIndexResource = await source.GetResourceAsync<ServiceIndexResourceV3>(protocolDiagnostics, cancellationToken);
+                var httpHandlerResource = await source.GetResourceAsync<HttpHandlerResource>(protocolDiagnostics, cancellationToken);
 
                 if (serviceIndexResource != null && httpHandlerResource != null)
                 {

@@ -38,7 +38,7 @@ namespace NuGet.Protocol
             MaxCacheDuration = _defaultCacheDuration;
         }
 
-        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
+        public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             ServiceIndexResourceV3 index = null;
             ServiceIndexCacheInfo cacheInfo = null;
@@ -69,7 +69,7 @@ namespace NuGet.Protocol
                         if (!_cache.TryGetValue(url, out cacheInfo) ||
                             entryValidCutoff > cacheInfo.CachedTime)
                         {
-                            index = await GetServiceIndexResourceV3(source, utcNow, NullLogger.Instance, token);
+                            index = await GetServiceIndexResourceV3(source, utcNow, NullLogger.Instance, protocolDiagnostics, token);
 
                             // cache the value even if it is null to avoid checking it again later
                             var cacheEntry = new ServiceIndexCacheInfo
@@ -106,10 +106,11 @@ namespace NuGet.Protocol
             SourceRepository source,
             DateTime utcNow,
             ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var url = source.PackageSource.Source;
-            var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
+            var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(protocolDiagnostics, token);
             var client = httpSourceResource.HttpSource;
 
             for (var retry = 0; retry < 3; retry++)
@@ -136,6 +137,7 @@ namespace NuGet.Protocol
                                 return result;
                             },
                             log,
+                            protocolDiagnostics,
                             token);
                     }
                     catch (Exception ex) when (retry < 2)

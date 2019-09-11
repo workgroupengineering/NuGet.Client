@@ -31,7 +31,7 @@ namespace NuGet.Protocol
         }
 
         public override async Task<IEnumerable<KeyValuePair<string, NuGetVersion>>> GetLatestVersions(IEnumerable<string> packageIds, bool includePrerelease, bool includeUnlisted,
-            SourceCacheContext sourceCacheContext, ILogger log, CancellationToken token)
+            SourceCacheContext sourceCacheContext, ILogger log, IProtocolDiagnostics protocolDiagnostics,  CancellationToken token)
         {
             var results = new List<KeyValuePair<string, NuGetVersion>>();
 
@@ -40,7 +40,7 @@ namespace NuGet.Protocol
             // fetch all ids in parallel
             foreach (var id in packageIds)
             {
-                var task = new KeyValuePair<string, Task<IEnumerable<NuGetVersion>>>(id, GetVersions(id, includePrerelease, includeUnlisted, sourceCacheContext, log, token));
+                var task = new KeyValuePair<string, Task<IEnumerable<NuGetVersion>>>(id, GetVersions(id, includePrerelease, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token));
                 tasks.Push(task);
             }
 
@@ -65,13 +65,13 @@ namespace NuGet.Protocol
             return results;
         }
 
-        public override async Task<IEnumerable<NuGetVersion>> GetVersions(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext sourceCacheContext, ILogger log, CancellationToken token)
+        public override async Task<IEnumerable<NuGetVersion>> GetVersions(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext sourceCacheContext, ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
             try
             {
-                var packages = await _feedParser.FindPackagesByIdAsync(packageId, includeUnlisted, includePrerelease, sourceCacheContext, log, token);
+                var packages = await _feedParser.FindPackagesByIdAsync(packageId, includeUnlisted, includePrerelease, sourceCacheContext, log, protocolDiagnostics, token);
 
                 return packages.Select(p => p.Version).ToArray();
             }
@@ -81,13 +81,13 @@ namespace NuGet.Protocol
             }
         }
 
-        public override async Task<bool> Exists(PackageIdentity identity, bool includeUnlisted, SourceCacheContext sourceCacheContext, ILogger log, CancellationToken token)
+        public override async Task<bool> Exists(PackageIdentity identity, bool includeUnlisted, SourceCacheContext sourceCacheContext, ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
             try
             {
-                var package = await _feedParser.GetPackage(identity, sourceCacheContext, log, token);
+                var package = await _feedParser.GetPackage(identity, sourceCacheContext, log, protocolDiagnostics, token);
 
                 return package != null;
             }
@@ -97,11 +97,11 @@ namespace NuGet.Protocol
             }
         }
 
-        public override async Task<bool> Exists(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext sourceCacheContext, ILogger log, CancellationToken token)
+        public override async Task<bool> Exists(string packageId, bool includePrerelease, bool includeUnlisted, SourceCacheContext sourceCacheContext, ILogger log, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
-            var versions = await GetVersions(packageId, includePrerelease, includeUnlisted, sourceCacheContext, log, token);
+            var versions = await GetVersions(packageId, includePrerelease, includeUnlisted, sourceCacheContext, log, protocolDiagnostics, token);
 
             return versions.Any();
         }

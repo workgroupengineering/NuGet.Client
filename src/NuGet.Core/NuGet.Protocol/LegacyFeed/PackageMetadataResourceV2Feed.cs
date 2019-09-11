@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 
@@ -43,23 +44,25 @@ namespace NuGet.Protocol
             bool includeUnlisted,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var packages = await _feedParser.FindPackagesByIdAsync(packageId, includeUnlisted, includePrerelease, sourceCacheContext, log, token);
+            var packages = await _feedParser.FindPackagesByIdAsync(packageId, includeUnlisted, includePrerelease, sourceCacheContext, log, protocolDiagnostics, token);
 
             var metadataCache = new MetadataReferenceCache();
             var filter = new SearchFilter(includePrerelease);
             filter.IncludeDelisted = includeUnlisted;
-            return packages.Select(p => V2FeedUtilities.CreatePackageSearchResult(p, metadataCache, filter, _feedParser, log, token)).ToList();
+            return packages.Select(p => V2FeedUtilities.CreatePackageSearchResult(p, metadataCache, filter, _feedParser, log, protocolDiagnostics, token)).ToList();
         }
 
         public override async Task<IPackageSearchMetadata> GetMetadataAsync(
             PackageIdentity package,
             SourceCacheContext sourceCacheContext,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var v2Package = await _feedParser.GetPackage(package, sourceCacheContext, log, token);
+            var v2Package = await _feedParser.GetPackage(package, sourceCacheContext, log, protocolDiagnostics, token);
 
             if (v2Package != null)
             {
@@ -67,7 +70,7 @@ namespace NuGet.Protocol
                 var filter = new SearchFilter(v2Package.Version.IsPrerelease);
                 filter.IncludeDelisted = !v2Package.IsListed;
 
-                return V2FeedUtilities.CreatePackageSearchResult(v2Package, metadataCache, filter, _feedParser, log, token);
+                return V2FeedUtilities.CreatePackageSearchResult(v2Package, metadataCache, filter, _feedParser, log, protocolDiagnostics, token);
             }
             return null;
         }
