@@ -25,9 +25,29 @@ namespace NuGet.Protocol
         /// requests cannot always be used. For example, suppose the request is a POST and contains content
         /// of a stream that can only be consumed once.
         /// </remarks>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<HttpResponseMessage> SendAsync(
+            HttpRetryHandlerRequest request,
+            ILogger log,
+            CancellationToken cancellationToken)
+        {
+            return SendAsync(request, log, source: string.Empty, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        /// <summary>
+        /// Make an HTTP request while retrying after failed attempts or timeouts.
+        /// </summary>
+        /// <remarks>
+        /// This method accepts a factory to create instances of the <see cref="HttpRequestMessage"/> because
+        /// requests cannot always be used. For example, suppose the request is a POST and contains content
+        /// of a stream that can only be consumed once.
+        /// </remarks>
+
         public async Task<HttpResponseMessage> SendAsync(
             HttpRetryHandlerRequest request,
             ILogger log,
+            string source,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             var tries = 0;
@@ -47,6 +67,7 @@ namespace NuGet.Protocol
                 using (var requestMessage = request.RequestFactory())
                 {
                     var stopwatch = Stopwatch.StartNew();
+                    var headerStopwatch = new Stopwatch();
                     var requestUri = requestMessage.RequestUri.ToString();
                     
                     try
@@ -87,7 +108,13 @@ namespace NuGet.Protocol
                             requestUri,
                             (int)request.RequestTimeout.TotalMilliseconds);
                         response = await TimeoutUtility.StartWithTimeout(
-                            timeoutToken => request.HttpClient.SendAsync(requestMessage, request.CompletionOption, timeoutToken),
+                            async timeoutToken =>
+                                {
+                                    headerStopwatch.Restart();
+                                    var result = await request.HttpClient.SendAsync(requestMessage, request.CompletionOption, timeoutToken);
+                                    headerStopwatch.Stop();
+                                    return result;
+                                },
                             request.RequestTimeout,
                             timeoutMessage,
                             cancellationToken);
@@ -111,6 +138,7 @@ namespace NuGet.Protocol
                             response.Content = newContent;
                         }
 
+                        stopwatch.Stop();
                         log.LogInformation("  " + string.Format(
                             CultureInfo.InvariantCulture,
                             Strings.Http_ResponseLog,
@@ -122,18 +150,26 @@ namespace NuGet.Protocol
                         {
                             success = false;
                         }
+
+                        protocolDiagnostics.OnEvent(source, requestMessage.RequestUri.ToString(), headerStopwatch.Elapsed, stopwatch.Elapsed, success, tries > 0, false);
                     }
                     catch (OperationCanceledException)
                     {
+                        stopwatch.Stop();
                         response?.Dispose();
+
+                        protocolDiagnostics.OnEvent(source, requestMessage.RequestUri.ToString(), headerStopwatch.Elapsed, stopwatch.Elapsed, false, tries > 0, true);
 
                         throw;
                     }
                     catch (Exception e)
                     {
+                        stopwatch.Stop();
                         success = false;
 
                         response?.Dispose();
+
+                        protocolDiagnostics.OnEvent(source, requestMessage.RequestUri.ToString(), headerStopwatch.Elapsed, stopwatch.Elapsed, success, tries > 0, false);
 
                         if (tries >= request.MaxTries)
                         {
