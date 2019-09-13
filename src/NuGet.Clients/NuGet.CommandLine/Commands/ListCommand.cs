@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NuGet.CommandLine;
 using NuGet.Protocol.Core.Types;
 using NuGet.Commands;
+using NuGet.Common;
 
 namespace NuGet.CommandLine
 {
@@ -85,7 +86,9 @@ namespace NuGet.CommandLine
                 Prerelease,
                 CancellationToken.None);
 
-            await listCommandRunner.ExecuteCommand(list);
+#pragma warning disable CS0618 // Type or member is obsolete
+            await listCommandRunner.ExecuteCommand(list, NullProtocolDiagnostics.Instance);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

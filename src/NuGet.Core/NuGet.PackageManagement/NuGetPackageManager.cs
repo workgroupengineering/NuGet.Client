@@ -181,6 +181,7 @@ namespace NuGet.PackageManagement
         /// <paramref name="nuGetProject" /> <paramref name="resolutionContext" /> and
         /// <paramref name="nuGetProjectContext" /> are used in the process.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task InstallPackageAsync(
             NuGetProject nuGetProject,
             string packageId,
@@ -188,6 +189,24 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             SourceRepository primarySourceRepository,
             IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, primarySourceRepository, secondarySources, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Installs the latest version of the given <paramref name="packageId" /> to NuGetProject
+        /// <paramref name="nuGetProject" /> <paramref name="resolutionContext" /> and
+        /// <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            string packageId,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            SourceRepository primarySourceRepository,
+            IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var logger = new LoggerAdapter(nuGetProjectContext);
@@ -206,6 +225,7 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 new List<SourceRepository> { primarySourceRepository },
                 secondarySources,
+                protocolDiagnostics,
                 token);
         }
 
@@ -214,6 +234,7 @@ namespace NuGet.PackageManagement
         /// <paramref name="nuGetProject" /> <paramref name="resolutionContext" /> and
         /// <paramref name="nuGetProjectContext" /> are used in the process.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task InstallPackageAsync(
             NuGetProject nuGetProject,
             string packageId,
@@ -224,6 +245,20 @@ namespace NuGet.PackageManagement
             IEnumerable<SourceRepository> secondarySources,
             CancellationToken token)
         {
+            return InstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, downloadContext, primarySourceRepository, secondarySources, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            string packageId,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            SourceRepository primarySourceRepository,
+            IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
+            CancellationToken token)
+        {
             return InstallPackageAsync(
                 nuGetProject,
                 packageId,
@@ -232,6 +267,7 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 new List<SourceRepository> { primarySourceRepository },
                 secondarySources,
+                protocolDiagnostics,
                 token);
         }
 
@@ -240,9 +276,17 @@ namespace NuGet.PackageManagement
         /// <paramref name="packageId" /> to NuGetProject <paramref name="nuGetProject" />
         /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
         /// </summary>
-        public async Task InstallPackageAsync(NuGetProject nuGetProject, string packageId, ResolutionContext resolutionContext,
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task InstallPackageAsync(NuGetProject nuGetProject, string packageId, ResolutionContext resolutionContext,
             INuGetProjectContext nuGetProjectContext, IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources, CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public async Task InstallPackageAsync(NuGetProject nuGetProject, string packageId, ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext, IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var logger = new LoggerAdapter(nuGetProjectContext);
 
@@ -259,7 +303,9 @@ namespace NuGet.PackageManagement
                 nuGetProjectContext,
                 downloadContext,
                 primarySources,
-                secondarySources, token);
+                secondarySources,
+                protocolDiagnostics,
+                token);
         }
 
         /// <summary>
@@ -267,6 +313,20 @@ namespace NuGet.PackageManagement
         /// <paramref name="packageId" /> to NuGetProject <paramref name="nuGetProject" />
         /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            string packageId,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, downloadContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
+        }
+
         public async Task InstallPackageAsync(
             NuGetProject nuGetProject,
             string packageId,
@@ -275,6 +335,7 @@ namespace NuGet.PackageManagement
             PackageDownloadContext downloadContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var log = new LoggerAdapter(nuGetProjectContext);
@@ -286,6 +347,7 @@ namespace NuGet.PackageManagement
                 resolutionContext,
                 primarySources,
                 log,
+                protocolDiagnostics,
                 token);
 
             if (resolvedPackage == null || resolvedPackage.LatestVersion == null)
@@ -302,7 +364,25 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 primarySources,
                 secondarySources,
+                protocolDiagnostics,
                 token);
+        }
+
+        /// <summary>
+        /// Installs given <paramref name="packageIdentity" /> to NuGetProject <paramref name="nuGetProject" />
+        /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            PackageIdentity packageIdentity,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            SourceRepository primarySourceRepository,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageIdentity, resolutionContext, nuGetProjectContext, primarySourceRepository, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -316,6 +396,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             SourceRepository primarySourceRepository,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var logger = new LoggerAdapter(nuGetProjectContext);
@@ -334,7 +415,26 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 new List<SourceRepository> { primarySourceRepository },
                 secondarySources,
+                protocolDiagnostics,
                 token);
+        }
+
+        /// <summary>
+        /// Installs given <paramref name="packageIdentity" /> to NuGetProject <paramref name="nuGetProject" />
+        /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            PackageIdentity packageIdentity,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            SourceRepository primarySourceRepository,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageIdentity, resolutionContext, nuGetProjectContext, downloadContext, primarySourceRepository, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -349,6 +449,7 @@ namespace NuGet.PackageManagement
             PackageDownloadContext downloadContext,
             SourceRepository primarySourceRepository,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return InstallPackageAsync(
@@ -359,7 +460,25 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 new List<SourceRepository> { primarySourceRepository },
                 secondarySources,
+                protocolDiagnostics,
                 token);
+        }
+
+        /// <summary>
+        /// Installs given <paramref name="packageIdentity" /> to NuGetProject <paramref name="nuGetProject" />
+        /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            PackageIdentity packageIdentity,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageIdentity, resolutionContext, nuGetProjectContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -373,6 +492,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var logger = new LoggerAdapter(nuGetProjectContext);
@@ -391,7 +511,26 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 primarySources,
                 secondarySources,
+                protocolDiagnostics,
                 token);
+        }
+
+        /// <summary>
+        /// Installs given <paramref name="packageIdentity" /> to NuGetProject <paramref name="nuGetProject" />
+        /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task InstallPackageAsync(
+            NuGetProject nuGetProject,
+            PackageIdentity packageIdentity,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return InstallPackageAsync(nuGetProject, packageIdentity, resolutionContext, nuGetProjectContext, downloadContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -406,13 +545,14 @@ namespace NuGet.PackageManagement
             PackageDownloadContext downloadContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             ActivityCorrelationId.StartNew();
 
             // Step-1 : Call PreviewInstallPackageAsync to get all the nuGetProjectActions
             var nuGetProjectActions = await PreviewInstallPackageAsync(nuGetProject, packageIdentity, resolutionContext,
-                nuGetProjectContext, primarySources, secondarySources, token);
+                nuGetProjectContext, primarySources, secondarySources, protocolDiagnostics, token);
 
             SetDirectInstall(packageIdentity, nuGetProjectContext);
 
@@ -422,21 +562,47 @@ namespace NuGet.PackageManagement
                 nuGetProjectActions,
                 nuGetProjectContext,
                 downloadContext,
+                protocolDiagnostics,
                 token);
 
             ClearDirectInstall(nuGetProjectContext);
         }
 
-        public async Task UninstallPackageAsync(NuGetProject nuGetProject, string packageId, UninstallationContext uninstallationContext,
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task UninstallPackageAsync(NuGetProject nuGetProject, string packageId, UninstallationContext uninstallationContext,
             INuGetProjectContext nuGetProjectContext, CancellationToken token)
+        {
+            return UninstallPackageAsync(nuGetProject, packageId, uninstallationContext, nuGetProjectContext, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public async Task UninstallPackageAsync(NuGetProject nuGetProject, string packageId, UninstallationContext uninstallationContext,
+            INuGetProjectContext nuGetProjectContext, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             ActivityCorrelationId.StartNew();
 
             // Step-1 : Call PreviewUninstallPackagesAsync to get all the nuGetProjectActions
-            var nuGetProjectActions = await PreviewUninstallPackageAsync(nuGetProject, packageId, uninstallationContext, nuGetProjectContext, token);
+            var nuGetProjectActions = await PreviewUninstallPackageAsync(nuGetProject, packageId, uninstallationContext, nuGetProjectContext, protocolDiagnostics, token);
 
             // Step-2 : Execute all the nuGetProjectActions
-            await ExecuteNuGetProjectActionsAsync(nuGetProject, nuGetProjectActions, nuGetProjectContext, NullSourceCacheContext.Instance, token);
+            await ExecuteNuGetProjectActionsAsync(nuGetProject, nuGetProjectActions, nuGetProjectContext, NullSourceCacheContext.Instance, protocolDiagnostics, token);
+        }
+
+        /// <summary>
+        /// Gives the preview as a list of NuGetProjectActions that will be performed to install
+        /// <paramref name="packageId" /> into <paramref name="nuGetProject" /> <paramref name="resolutionContext" />
+        /// and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(
+            NuGetProject nuGetProject,
+            string packageId,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            SourceRepository primarySourceRepository,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return PreviewInstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, primarySourceRepository, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -451,9 +617,28 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             SourceRepository primarySourceRepository,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            return PreviewInstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, new[] { primarySourceRepository }, secondarySources, token);
+            return PreviewInstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, new[] { primarySourceRepository }, secondarySources, protocolDiagnostics, token);
+        }
+
+        /// <summary>
+        /// Gives the preview as a list of NuGetProjectActions that will be performed to install
+        /// <paramref name="packageId" /> into <paramref name="nuGetProject" /> <paramref name="resolutionContext" />
+        /// and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(
+            NuGetProject nuGetProject,
+            string packageId,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return PreviewInstallPackageAsync(nuGetProject, packageId, resolutionContext, nuGetProjectContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -468,6 +653,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (nuGetProject == null)
@@ -499,6 +685,7 @@ namespace NuGet.PackageManagement
                 resolutionContext,
                 primarySources,
                 log,
+                protocolDiagnostics,
                 token);
 
             if (resolvedPackage == null || resolvedPackage.LatestVersion == null)
@@ -516,7 +703,19 @@ namespace NuGet.PackageManagement
 
             // Step-2 : Call InstallPackage(project, packageIdentity)
             return await PreviewInstallPackageAsync(nuGetProject, new PackageIdentity(packageId, resolvedPackage.LatestVersion), resolutionContext,
-                nuGetProjectContext, primarySources, secondarySources, token);
+                nuGetProjectContext, primarySources, secondarySources, protocolDiagnostics, token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<NuGetProjectAction>> PreviewUpdatePackagesAsync(
+            IEnumerable<NuGetProject> nuGetProjects,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return PreviewUpdatePackagesAsync(nuGetProjects, resolutionContext, nuGetProjectContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         public Task<IEnumerable<NuGetProjectAction>> PreviewUpdatePackagesAsync(
@@ -525,6 +724,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return PreviewUpdatePackagesAsync(
@@ -535,9 +735,11 @@ namespace NuGet.PackageManagement
                 nuGetProjectContext: nuGetProjectContext,
                 primarySources: primarySources,
                 secondarySources: secondarySources,
+                protocolDiagnostics,
                 token: token);
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<IEnumerable<NuGetProjectAction>> PreviewUpdatePackagesAsync(
             string packageId,
             IEnumerable<NuGetProject> nuGetProjects,
@@ -555,9 +757,11 @@ namespace NuGet.PackageManagement
                 nuGetProjectContext: nuGetProjectContext,
                 primarySources: primarySources,
                 secondarySources: secondarySources,
+                NullProtocolDiagnostics.Instance,
                 token: token);
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<IEnumerable<NuGetProjectAction>> PreviewUpdatePackagesAsync(
             PackageIdentity packageIdentity,
             IEnumerable<NuGetProject> nuGetProjects,
@@ -575,7 +779,21 @@ namespace NuGet.PackageManagement
                 nuGetProjectContext: nuGetProjectContext,
                 primarySources: primarySources,
                 secondarySources: secondarySources,
+                NullProtocolDiagnostics.Instance,
                 token: token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<NuGetProjectAction>> PreviewUpdatePackagesAsync(
+            List<PackageIdentity> packageIdentities,
+            IEnumerable<NuGetProject> nuGetProjects,
+            ResolutionContext resolutionContext,
+            INuGetProjectContext nuGetProjectContext,
+            IEnumerable<SourceRepository> primarySources,
+            IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return PreviewUpdatePackagesAsync(packageIdentities, nuGetProjects, resolutionContext, nuGetProjectContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         public Task<IEnumerable<NuGetProjectAction>> PreviewUpdatePackagesAsync(
@@ -585,6 +803,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return PreviewUpdatePackagesAsync(
@@ -595,6 +814,7 @@ namespace NuGet.PackageManagement
                 nuGetProjectContext: nuGetProjectContext,
                 primarySources: primarySources,
                 secondarySources: secondarySources,
+                protocolDiagnostics,
                 token: token);
         }
 
@@ -606,6 +826,7 @@ namespace NuGet.PackageManagement
                 INuGetProjectContext nuGetProjectContext,
                 IEnumerable<SourceRepository> primarySources,
                 IEnumerable<SourceRepository> secondarySources,
+                IProtocolDiagnostics protocolDiagnostics,
                 CancellationToken token)
         {
             if (nuGetProjects == null)
@@ -698,6 +919,7 @@ namespace NuGet.PackageManagement
                         nuGetProjectContext,
                         primarySources,
                         secondarySources,
+                        protocolDiagnostics,
                         token)));
             }
 
@@ -743,6 +965,7 @@ namespace NuGet.PackageManagement
                 nuGetProjectContext,
                 primarySources,
                 secondarySources,
+                protocolDiagnostics,
                 token));
             }
 
@@ -787,6 +1010,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             IEnumerable<SourceRepository> primarySources,
             IEnumerable<SourceRepository> secondarySources,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var projectInstalledPackageReferences = await nuGetProject.GetInstalledPackagesAsync(token);
@@ -822,6 +1046,7 @@ namespace NuGet.PackageManagement
                             resolutionContext,
                             primarySources,
                             log,
+                            protocolDiagnostics,
                             token);
 
                         if (resolvedPackage != null && resolvedPackage.LatestVersion != null && resolvedPackage.LatestVersion > installedPackage.PackageIdentity.Version)
@@ -875,6 +1100,7 @@ namespace NuGet.PackageManagement
                             resolutionContext,
                             primarySources,
                             log,
+                            protocolDiagnostics,
                             token);
 
                         if (resolvedPackage == null || !resolvedPackage.Exists)
@@ -964,6 +1190,7 @@ namespace NuGet.PackageManagement
                 INuGetProjectContext nuGetProjectContext,
                 IEnumerable<SourceRepository> primarySources,
                 IEnumerable<SourceRepository> secondarySources,
+                IProtocolDiagnostics protocolDiagnostics,
                 CancellationToken token)
         {
             var log = new LoggerAdapter(nuGetProjectContext);
@@ -1121,7 +1348,7 @@ namespace NuGet.PackageManagement
                     IsUpdateAll = isUpdateAll
                 };
 
-                var availablePackageDependencyInfoWithSourceSet = await ResolverGather.GatherAsync(gatherContext, token);
+                var availablePackageDependencyInfoWithSourceSet = await ResolverGather.GatherAsync(gatherContext, protocolDiagnostics, token);
 
                 // emit gather dependency telemetry event and restart timer
                 stopWatch.Stop();
@@ -1145,11 +1372,11 @@ namespace NuGet.PackageManagement
                 {
                     // BUG #1181 VS2015 : Updating from one feed fails for packages from different feed.
 
-                    var packagesFolderResource = await PackagesFolderSourceRepository.GetResourceAsync<DependencyInfoResource>(token);
+                    var packagesFolderResource = await PackagesFolderSourceRepository.GetResourceAsync<DependencyInfoResource>(protocolDiagnostics, token);
                     var packages = new List<SourcePackageDependencyInfo>();
                     foreach (var installedPackage in projectInstalledPackageReferences)
                     {
-                        var packageInfo = await packagesFolderResource.ResolvePackage(installedPackage.PackageIdentity, targetFramework, resolutionContext.SourceCacheContext, log, token);
+                        var packageInfo = await packagesFolderResource.ResolvePackage(installedPackage.PackageIdentity, targetFramework, resolutionContext.SourceCacheContext, log, protocolDiagnostics, token);
                         if (packageInfo != null)
                         {
                             availablePackageDependencyInfoWithSourceSet.Add(packageInfo);
@@ -1241,7 +1468,7 @@ namespace NuGet.PackageManagement
                     targetIds = (isReinstall ? primaryTargets.Select(p => p.Id) : primaryTargetIds);
                 }
 
-                var installedPackagesInDependencyOrder = await GetInstalledPackagesInDependencyOrder(nuGetProject, token);
+                var installedPackagesInDependencyOrder = await GetInstalledPackagesInDependencyOrder(nuGetProject, protocolDiagnostics, token);
 
                 var isDependencyBehaviorIgnore = resolutionContext.DependencyBehavior == DependencyBehavior.Ignore;
 
@@ -1296,11 +1523,28 @@ namespace NuGet.PackageManagement
             return nuGetProjectActions;
         }
 
-        public async Task<IEnumerable<PackageDependencyInfo>> GetInstalledPackagesDependencyInfo(NuGetProject nuGetProject, CancellationToken token, bool includeUnresolved = false)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<PackageDependencyInfo>> GetInstalledPackagesDependencyInfo(NuGetProject nuGetProject, CancellationToken token, bool includeUnresolved = false)
+        {
+            return GetInstalledPackagesDependencyInfo(nuGetProject, NullProtocolDiagnostics.Instance, token, includeUnresolved);
+        }
+
+        public async Task<IEnumerable<PackageDependencyInfo>> GetInstalledPackagesDependencyInfo(NuGetProject nuGetProject, IProtocolDiagnostics protocolDiagnostics, CancellationToken token, bool includeUnresolved = false)
         {
             var targetFramework = nuGetProject.GetMetadata<NuGetFramework>(NuGetProjectMetadataKeys.TargetFramework);
             var installedPackageIdentities = (await nuGetProject.GetInstalledPackagesAsync(token)).Select(pr => pr.PackageIdentity);
-            return await GetDependencyInfoFromPackagesFolderAsync(installedPackageIdentities, targetFramework, includeUnresolved);
+            return await GetDependencyInfoFromPackagesFolderAsync(installedPackageIdentities, targetFramework, protocolDiagnostics, includeUnresolved);
+        }
+
+        /// <summary>
+        /// Returns all installed packages in order of dependency. Packages with no dependencies come first.
+        /// </summary>
+        /// <remarks>Packages with unresolved dependencies are NOT returned since they are not valid.</remarks>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<PackageIdentity>> GetInstalledPackagesInDependencyOrder(NuGetProject nuGetProject,
+            CancellationToken token)
+        {
+            return GetInstalledPackagesInDependencyOrder(nuGetProject, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -1308,13 +1552,15 @@ namespace NuGet.PackageManagement
         /// </summary>
         /// <remarks>Packages with unresolved dependencies are NOT returned since they are not valid.</remarks>
         public async Task<IEnumerable<PackageIdentity>> GetInstalledPackagesInDependencyOrder(NuGetProject nuGetProject,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var targetFramework = nuGetProject.GetMetadata<NuGetFramework>(NuGetProjectMetadataKeys.TargetFramework);
             var installedPackages = await nuGetProject.GetInstalledPackagesAsync(token);
             var installedPackageIdentities = installedPackages.Select(pr => pr.PackageIdentity);
             var dependencyInfoFromPackagesFolder = await GetDependencyInfoFromPackagesFolderAsync(installedPackageIdentities,
-                targetFramework);
+                targetFramework,
+                protocolDiagnostics);
 
             // dependencyInfoFromPackagesFolder can be null when NuGetProtocolException is thrown
             var resolverPackages = dependencyInfoFromPackagesFolder?.Select(package =>
@@ -1488,9 +1734,22 @@ namespace NuGet.PackageManagement
         /// <paramref name="packageIdentity" /> into <paramref name="nuGetProject" />
         /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
         /// </summary>
-        public async Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(NuGetProject nuGetProject, PackageIdentity packageIdentity,
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(NuGetProject nuGetProject, PackageIdentity packageIdentity,
             ResolutionContext resolutionContext, INuGetProjectContext nuGetProjectContext,
             SourceRepository primarySourceRepository, IEnumerable<SourceRepository> secondarySources, CancellationToken token)
+        {
+            return PreviewInstallPackageAsync(nuGetProject, packageIdentity, resolutionContext, nuGetProjectContext, primarySourceRepository, secondarySources, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Gives the preview as a list of NuGetProjectActions that will be performed to install
+        /// <paramref name="packageIdentity" /> into <paramref name="nuGetProject" />
+        /// <paramref name="resolutionContext" /> and <paramref name="nuGetProjectContext" /> are used in the process.
+        /// </summary>
+        public async Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(NuGetProject nuGetProject, PackageIdentity packageIdentity,
+            ResolutionContext resolutionContext, INuGetProjectContext nuGetProjectContext,
+            SourceRepository primarySourceRepository, IEnumerable<SourceRepository> secondarySources, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (nuGetProject is INuGetIntegratedProject)
             {
@@ -1511,13 +1770,22 @@ namespace NuGet.PackageManagement
 
             var primarySources = new List<SourceRepository> { primarySourceRepository };
             return await PreviewInstallPackageAsync(nuGetProject, packageIdentity, resolutionContext,
-                nuGetProjectContext, primarySources, secondarySources, token);
+                nuGetProjectContext, primarySources, secondarySources, protocolDiagnostics, token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(NuGetProject nuGetProject, PackageIdentity packageIdentity,
+            ResolutionContext resolutionContext, INuGetProjectContext nuGetProjectContext,
+            IEnumerable<SourceRepository> primarySources, IEnumerable<SourceRepository> secondarySources,
+            CancellationToken token)
+        {
+            return PreviewInstallPackageAsync(nuGetProject, packageIdentity, resolutionContext, nuGetProjectContext, primarySources, secondarySources, NullProtocolDiagnostics.Instance, token);
         }
 
         public async Task<IEnumerable<NuGetProjectAction>> PreviewInstallPackageAsync(NuGetProject nuGetProject, PackageIdentity packageIdentity,
             ResolutionContext resolutionContext, INuGetProjectContext nuGetProjectContext,
             IEnumerable<SourceRepository> primarySources, IEnumerable<SourceRepository> secondarySources,
-            CancellationToken token)
+            IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (nuGetProject == null)
             {
@@ -1632,7 +1900,7 @@ namespace NuGet.PackageManagement
                         ProjectContext = nuGetProjectContext
                     };
 
-                    availablePackageDependencyInfoWithSourceSet = await ResolverGather.GatherAsync(gatherContext, token);
+                    availablePackageDependencyInfoWithSourceSet = await ResolverGather.GatherAsync(gatherContext, protocolDiagnostics, token);
 
                     // emit gather dependency telemetry event and restart timer
                     stopWatch.Stop();
@@ -1792,7 +2060,7 @@ namespace NuGet.PackageManagement
             else
             {
                 var logger = new ProjectContextLogger(nuGetProjectContext);
-                var sourceRepository = await GetSourceRepository(packageIdentity, effectiveSources, resolutionContext.SourceCacheContext, logger);
+                var sourceRepository = await GetSourceRepository(packageIdentity, effectiveSources, resolutionContext.SourceCacheContext, logger, protocolDiagnostics);
                 nuGetProjectActions.Add(NuGetProjectAction.CreateInstallProjectAction(packageIdentity, sourceRepository, nuGetProject));
             }
 
@@ -1819,7 +2087,8 @@ namespace NuGet.PackageManagement
         private static async Task<SourceRepository> GetSourceRepository(PackageIdentity packageIdentity,
             IEnumerable<SourceRepository> sourceRepositories,
             SourceCacheContext sourceCacheContext,
-            ILogger logger)
+            ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             SourceRepository source = null;
 
@@ -1833,10 +2102,10 @@ namespace NuGet.PackageManagement
             foreach (var sourceRepository in sourceRepositories)
             {
                 // TODO: fetch the resource in parallel also
-                var metadataResource = await sourceRepository.GetResourceAsync<MetadataResource>();
+                var metadataResource = await sourceRepository.GetResourceAsync<MetadataResource>(protocolDiagnostics);
                 if (metadataResource != null)
                 {
-                    var task = Task.Run(() => metadataResource.Exists(packageIdentity, sourceCacheContext, logger, tokenSource.Token), tokenSource.Token);
+                    var task = Task.Run(() => metadataResource.Exists(packageIdentity, sourceCacheContext, logger, protocolDiagnostics, tokenSource.Token), tokenSource.Token);
                     results.Enqueue(new KeyValuePair<SourceRepository, Task<bool>>(sourceRepository, task));
                 }
             }
@@ -1889,7 +2158,7 @@ namespace NuGet.PackageManagement
         /// process.
         /// </summary>
         public async Task<IEnumerable<NuGetProjectAction>> PreviewUninstallPackageAsync(NuGetProject nuGetProject, string packageId,
-            UninstallationContext uninstallationContext, INuGetProjectContext nuGetProjectContext, CancellationToken token)
+            UninstallationContext uninstallationContext, INuGetProjectContext nuGetProjectContext, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (nuGetProject == null)
             {
@@ -1920,7 +2189,7 @@ namespace NuGet.PackageManagement
                     packageId, nuGetProject.GetMetadata<string>(NuGetProjectMetadataKeys.Name)));
             }
 
-            return await PreviewUninstallPackageInternalAsync(nuGetProject, packageReference, uninstallationContext, nuGetProjectContext, token);
+            return await PreviewUninstallPackageInternalAsync(nuGetProject, packageReference, uninstallationContext, nuGetProjectContext, protocolDiagnostics, token);
         }
 
         /// <summary>
@@ -1930,7 +2199,7 @@ namespace NuGet.PackageManagement
         /// process.
         /// </summary>
         public async Task<IEnumerable<NuGetProjectAction>> PreviewUninstallPackageAsync(NuGetProject nuGetProject, PackageIdentity packageIdentity,
-            UninstallationContext uninstallationContext, INuGetProjectContext nuGetProjectContext, CancellationToken token)
+            UninstallationContext uninstallationContext, INuGetProjectContext nuGetProjectContext, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (nuGetProject == null)
             {
@@ -1961,11 +2230,11 @@ namespace NuGet.PackageManagement
                     packageIdentity.Id, nuGetProject.GetMetadata<string>(NuGetProjectMetadataKeys.Name)));
             }
 
-            return await PreviewUninstallPackageInternalAsync(nuGetProject, packageReference, uninstallationContext, nuGetProjectContext, token);
+            return await PreviewUninstallPackageInternalAsync(nuGetProject, packageReference, uninstallationContext, nuGetProjectContext, protocolDiagnostics, token);
         }
 
         private async Task<IEnumerable<NuGetProjectAction>> PreviewUninstallPackageInternalAsync(NuGetProject nuGetProject, Packaging.PackageReference packageReference,
-            UninstallationContext uninstallationContext, INuGetProjectContext nuGetProjectContext, CancellationToken token)
+            UninstallationContext uninstallationContext, INuGetProjectContext nuGetProjectContext, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (SolutionManager == null)
             {
@@ -2000,7 +2269,7 @@ namespace NuGet.PackageManagement
             var log = new LoggerAdapter(nuGetProjectContext);
             var installedPackageIdentities = (await nuGetProject.GetInstalledPackagesAsync(token)).Select(pr => pr.PackageIdentity);
             var dependencyInfoFromPackagesFolder = await GetDependencyInfoFromPackagesFolderAsync(installedPackageIdentities,
-                packageReferenceTargetFramework);
+                packageReferenceTargetFramework, protocolDiagnostics);
 
             nuGetProjectContext.Log(ProjectManagement.MessageLevel.Info, Strings.ResolvingActionsToUninstallPackage, packageIdentity);
             // Step-2 : Determine if the package can be uninstalled based on the metadata resources
@@ -2016,18 +2285,19 @@ namespace NuGet.PackageManagement
 
         private async Task<IEnumerable<PackageDependencyInfo>> GetDependencyInfoFromPackagesFolderAsync(IEnumerable<PackageIdentity> packageIdentities,
             NuGetFramework nuGetFramework,
+            IProtocolDiagnostics protocolDiagnostics,
             bool includeUnresolved = false)
         {
             try
             {
                 var results = new HashSet<PackageDependencyInfo>(PackageIdentity.Comparer);
 
-                var dependencyInfoResource = await PackagesFolderSourceRepository.GetResourceAsync<DependencyInfoResource>();
+                var dependencyInfoResource = await PackagesFolderSourceRepository.GetResourceAsync<DependencyInfoResource>(protocolDiagnostics);
 
                 foreach (var package in packageIdentities)
                 {
                     var packageDependencyInfo = await dependencyInfoResource.ResolvePackage(package, nuGetFramework, NullSourceCacheContext.Instance,
-                        Common.NullLogger.Instance, CancellationToken.None);
+                        Common.NullLogger.Instance, protocolDiagnostics, CancellationToken.None);
                     if (packageDependencyInfo != null)
                     {
                         results.Add(packageDependencyInfo);
@@ -2053,10 +2323,28 @@ namespace NuGet.PackageManagement
         ///     cref="PreviewInstallPackageAsync(IEnumerable{NuGetProject},string,ResolutionContext,INuGetProjectContext,SourceRepository,IEnumerable{SourceRepository},CancellationToken)" />
         /// <paramref name="nuGetProjectContext" /> is used in the process.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task ExecuteNuGetProjectActionsAsync(IEnumerable<NuGetProject> nuGetProjects,
+            IEnumerable<NuGetProjectAction> nuGetProjectActions,
+            INuGetProjectContext nuGetProjectContext,
+            SourceCacheContext sourceCacheContext,
+            CancellationToken token)
+        {
+            return ExecuteNuGetProjectActionsAsync(nuGetProjects, nuGetProjectActions, nuGetProjectContext, sourceCacheContext, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Executes the list of <paramref name="nuGetProjectActions" /> on list of <paramref name="nuGetProjects" /> , which is
+        /// likely obtained by calling into
+        /// <see
+        ///     cref="PreviewInstallPackageAsync(IEnumerable{NuGetProject},string,ResolutionContext,INuGetProjectContext,SourceRepository,IEnumerable{SourceRepository},CancellationToken)" />
+        /// <paramref name="nuGetProjectContext" /> is used in the process.
+        /// </summary>
         public async Task ExecuteNuGetProjectActionsAsync(IEnumerable<NuGetProject> nuGetProjects,
             IEnumerable<NuGetProjectAction> nuGetProjectActions,
             INuGetProjectContext nuGetProjectContext,
             SourceCacheContext sourceCacheContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var projects = nuGetProjects.ToList();
@@ -2105,7 +2393,7 @@ namespace NuGet.PackageManagement
             foreach (var project in sortedProjectsToUpdate)
             {
                 var nugetActions = nuGetProjectActions.Where(action => action.Project.Equals(project));
-                await ExecuteNuGetProjectActionsAsync(project, nugetActions, nuGetProjectContext, sourceCacheContext, token);
+                await ExecuteNuGetProjectActionsAsync(project, nugetActions, nuGetProjectContext, sourceCacheContext, protocolDiagnostics, token);
             }
 
             // clear cache which could temper with other updates
@@ -2121,10 +2409,28 @@ namespace NuGet.PackageManagement
         ///     cref="PreviewInstallPackageAsync(NuGetProject,string,ResolutionContext,INuGetProjectContext,SourceRepository,IEnumerable{SourceRepository},CancellationToken)" />
         /// <paramref name="nuGetProjectContext" /> is used in the process.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task ExecuteNuGetProjectActionsAsync(NuGetProject nuGetProject,
+            IEnumerable<NuGetProjectAction> nuGetProjectActions,
+            INuGetProjectContext nuGetProjectContext,
+            SourceCacheContext sourceCacheContext,
+            CancellationToken token)
+        {
+            return ExecuteNuGetProjectActionsAsync(nuGetProject, nuGetProjectActions, nuGetProjectContext, sourceCacheContext, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Executes the list of <paramref name="nuGetProjectActions" /> on <paramref name="nuGetProject" /> , which is
+        /// likely obtained by calling into
+        /// <see
+        ///     cref="PreviewInstallPackageAsync(NuGetProject,string,ResolutionContext,INuGetProjectContext,SourceRepository,IEnumerable{SourceRepository},CancellationToken)" />
+        /// <paramref name="nuGetProjectContext" /> is used in the process.
+        /// </summary>
         public async Task ExecuteNuGetProjectActionsAsync(NuGetProject nuGetProject,
             IEnumerable<NuGetProjectAction> nuGetProjectActions,
             INuGetProjectContext nuGetProjectContext,
             SourceCacheContext sourceCacheContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var logger = new LoggerAdapter(nuGetProjectContext);
@@ -2139,7 +2445,25 @@ namespace NuGet.PackageManagement
                 nuGetProjectActions,
                 nuGetProjectContext,
                 downloadContext,
+                protocolDiagnostics,
                 token);
+        }
+
+        /// <summary>
+        /// Executes the list of <paramref name="nuGetProjectActions" /> on <paramref name="nuGetProject" /> , which is
+        /// likely obtained by calling into
+        /// <see
+        ///     cref="PreviewInstallPackageAsync(NuGetProject,string,ResolutionContext,INuGetProjectContext,SourceRepository,IEnumerable{SourceRepository},CancellationToken)" />
+        /// <paramref name="nuGetProjectContext" /> is used in the process.
+        /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task ExecuteNuGetProjectActionsAsync(NuGetProject nuGetProject,
+            IEnumerable<NuGetProjectAction> nuGetProjectActions,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            CancellationToken token)
+        {
+            return ExecuteNuGetProjectActionsAsync(nuGetProject, nuGetProjectActions, nuGetProjectContext, downloadContext, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -2153,6 +2477,7 @@ namespace NuGet.PackageManagement
             IEnumerable<NuGetProjectAction> nuGetProjectActions,
             INuGetProjectContext nuGetProjectContext,
             PackageDownloadContext downloadContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (nuGetProject == null)
@@ -2230,6 +2555,7 @@ namespace NuGet.PackageManagement
                             downloadContext,
                             SettingsUtility.GetGlobalPackagesFolder(Settings),
                             logger,
+                            protocolDiagnostics,
                             downloadTokenSource.Token);
 
                         // Log download information
@@ -3044,11 +3370,28 @@ namespace NuGet.PackageManagement
         /// packagesFolderPath from NuGetPackageManager
         /// to create a folderNuGetProject before calling into this method
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<bool> RestorePackageAsync(
+            PackageIdentity packageIdentity,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            IEnumerable<SourceRepository> sourceRepositories,
+            CancellationToken token)
+        {
+            return RestorePackageAsync(packageIdentity, nuGetProjectContext, downloadContext, sourceRepositories, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// RestorePackage is only allowed on a folderNuGetProject. In most cases, one will simply use the
+        /// packagesFolderPath from NuGetPackageManager
+        /// to create a folderNuGetProject before calling into this method
+        /// </summary>
         public async Task<bool> RestorePackageAsync(
             PackageIdentity packageIdentity,
             INuGetProjectContext nuGetProjectContext,
             PackageDownloadContext downloadContext,
             IEnumerable<SourceRepository> sourceRepositories,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -3070,6 +3413,7 @@ namespace NuGet.PackageManagement
                 downloadContext,
                 SettingsUtility.GetGlobalPackagesFolder(Settings),
                 new ProjectContextLogger(nuGetProjectContext),
+                protocolDiagnostics,
                 token))
             {
                 // Install package whether returned from the cache or a direct download
@@ -3206,6 +3550,7 @@ namespace NuGet.PackageManagement
             return true;
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public static Task<ResolvedPackage> GetLatestVersionAsync(
             string packageId,
             NuGetFramework framework,
@@ -3214,13 +3559,38 @@ namespace NuGet.PackageManagement
             Common.ILogger log,
             CancellationToken token)
         {
+            return GetLatestVersionAsync(packageId, framework, resolutionContext, primarySourceRepository, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public static Task<ResolvedPackage> GetLatestVersionAsync(
+            string packageId,
+            NuGetFramework framework,
+            ResolutionContext resolutionContext,
+            SourceRepository primarySourceRepository,
+            Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
+            CancellationToken token)
+        {
             return GetLatestVersionAsync(
                 packageId,
                 framework,
                 resolutionContext,
                 new List<SourceRepository> { primarySourceRepository },
                 log,
+                protocolDiagnostics,
                 token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<ResolvedPackage> GetLatestVersionAsync(
+            string packageId,
+            NuGetProject project,
+            ResolutionContext resolutionContext,
+            SourceRepository primarySourceRepository,
+            Common.ILogger log,
+            CancellationToken token)
+        {
+            return GetLatestVersionAsync(packageId, project, resolutionContext, primarySourceRepository, log, NullProtocolDiagnostics.Instance, token);
         }
 
         public static Task<ResolvedPackage> GetLatestVersionAsync(
@@ -3229,6 +3599,7 @@ namespace NuGet.PackageManagement
             ResolutionContext resolutionContext,
             SourceRepository primarySourceRepository,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             NuGetFramework framework;
@@ -3244,7 +3615,20 @@ namespace NuGet.PackageManagement
                 resolutionContext,
                 new List<SourceRepository> { primarySourceRepository },
                 log,
+                protocolDiagnostics,
                 token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<ResolvedPackage> GetLatestVersionAsync(
+            string packageId,
+            NuGetProject project,
+            ResolutionContext resolutionContext,
+            IEnumerable<SourceRepository> sources,
+            Common.ILogger log,
+            CancellationToken token)
+        {
+            return GetLatestVersionAsync(packageId, project, resolutionContext, sources, log, NullProtocolDiagnostics.Instance, token);
         }
 
         public static async Task<ResolvedPackage> GetLatestVersionAsync(
@@ -3253,6 +3637,7 @@ namespace NuGet.PackageManagement
             ResolutionContext resolutionContext,
             IEnumerable<SourceRepository> sources,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var tasks = new List<Task<NuGetVersion>>();
@@ -3264,7 +3649,19 @@ namespace NuGet.PackageManagement
                 framework = NuGetFramework.AnyFramework;
             }
 
-            return await GetLatestVersionAsync(packageId, framework, resolutionContext, sources, log, token);
+            return await GetLatestVersionAsync(packageId, framework, resolutionContext, sources, log, protocolDiagnostics, token);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<ResolvedPackage> GetLatestVersionAsync(
+            string packageId,
+            NuGetFramework framework,
+            ResolutionContext resolutionContext,
+            IEnumerable<SourceRepository> sources,
+            Common.ILogger log,
+            CancellationToken token)
+        {
+            return GetLatestVersionAsync(packageId, framework, resolutionContext, sources, log, NullProtocolDiagnostics.Instance, token);
         }
 
         public static async Task<ResolvedPackage> GetLatestVersionAsync(
@@ -3273,6 +3670,7 @@ namespace NuGet.PackageManagement
             ResolutionContext resolutionContext,
             IEnumerable<SourceRepository> sources,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var tasks = new List<Task<ResolvedPackage>>();
@@ -3280,7 +3678,7 @@ namespace NuGet.PackageManagement
             foreach (var source in sources)
             {
                 tasks.Add(Task.Run(async ()
-                    => await GetLatestVersionCoreAsync(packageId, version, framework, resolutionContext, source, log, token)));
+                    => await GetLatestVersionCoreAsync(packageId, version, framework, resolutionContext, source, log, protocolDiagnostics, token)));
             }
 
             var resolvedPackages = await Task.WhenAll(tasks);
@@ -3289,7 +3687,8 @@ namespace NuGet.PackageManagement
             return new ResolvedPackage(latestVersion, resolvedPackages.Any(p => p.Exists));
         }
 
-        public static async Task<ResolvedPackage> GetLatestVersionAsync(
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<ResolvedPackage> GetLatestVersionAsync(
             PackageReference package,
             NuGetFramework framework,
             ResolutionContext resolutionContext,
@@ -3297,11 +3696,23 @@ namespace NuGet.PackageManagement
             Common.ILogger log,
             CancellationToken token)
         {
+            return GetLatestVersionAsync(package, framework, resolutionContext, sources, log, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public static async Task<ResolvedPackage> GetLatestVersionAsync(
+            PackageReference package,
+            NuGetFramework framework,
+            ResolutionContext resolutionContext,
+            IEnumerable<SourceRepository> sources,
+            Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
+            CancellationToken token)
+        {
             var tasks = new List<Task<ResolvedPackage>>();
             foreach (var source in sources)
             {
                 tasks.Add(Task.Run(async ()
-                    => await GetLatestVersionCoreAsync(package.PackageIdentity.Id, package.PackageIdentity.Version, framework, resolutionContext, source, log, token)));
+                    => await GetLatestVersionCoreAsync(package.PackageIdentity.Id, package.PackageIdentity.Version, framework, resolutionContext, source, log, protocolDiagnostics, token)));
             }
 
             var resolvedPackages = await Task.WhenAll(tasks);
@@ -3320,14 +3731,15 @@ namespace NuGet.PackageManagement
             ResolutionContext resolutionContext,
             SourceRepository source,
             Common.ILogger log,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
-            var dependencyInfoResource = await source.GetResourceAsync<DependencyInfoResource>();
+            var dependencyInfoResource = await source.GetResourceAsync<DependencyInfoResource>(protocolDiagnostics);
 
             // Resolve the package for the project framework and cache the results in the
             // resolution context for the gather to use during the next step.
             // Using the metadata resource will result in multiple calls to the same url during an install.
-            var packages = (await dependencyInfoResource.ResolvePackages(packageId, framework, resolutionContext.SourceCacheContext, log, token)).ToList();
+            var packages = (await dependencyInfoResource.ResolvePackages(packageId, framework, resolutionContext.SourceCacheContext, log, protocolDiagnostics, token)).ToList();
 
             Debug.Assert(resolutionContext.GatherCache != null);
 

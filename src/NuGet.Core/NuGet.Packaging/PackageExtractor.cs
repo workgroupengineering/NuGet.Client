@@ -635,6 +635,7 @@ namespace NuGet.Packaging
             IPackageDownloader packageDownloader,
             VersionFolderPathResolver versionFolderPathResolver,
             PackageExtractionContext packageExtractionContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token,
             Guid parentId = default(Guid))
         {
@@ -710,7 +711,7 @@ namespace NuGet.Packaging
                             var packageSaveMode = packageExtractionContext.PackageSaveMode;
 
                             // Extract the nupkg
-                            var copiedNupkg = await packageDownloader.CopyNupkgFileToAsync(targetTempNupkg, cancellationToken);
+                            var copiedNupkg = await packageDownloader.CopyNupkgFileToAsync(targetTempNupkg, protocolDiagnostics, cancellationToken);
 
                             if (packageSaveMode.HasFlag(PackageSaveMode.Nuspec) || packageSaveMode.HasFlag(PackageSaveMode.Files))
                             {

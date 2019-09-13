@@ -119,7 +119,8 @@ namespace NuGet.CommandLine.XPlat
                             noSymbolsValue,
                             noServiceEndpoint,
                             skipDuplicate,
-                            getLogger());
+                            getLogger(),
+                            NullProtocolDiagnostics.Instance);
                     }
                     catch (TaskCanceledException ex)
                     {

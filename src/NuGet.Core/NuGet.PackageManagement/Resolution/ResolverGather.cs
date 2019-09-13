@@ -69,15 +69,27 @@ namespace NuGet.PackageManagement
         /// <summary>
         /// Gather packages
         /// </summary>
-        public static async Task<HashSet<SourcePackageDependencyInfo>> GatherAsync(
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<HashSet<SourcePackageDependencyInfo>> GatherAsync(
             GatherContext context,
             CancellationToken token)
         {
-            var engine = new ResolverGather(context);
-            return await engine.GatherAsync(token);
+            return GatherAsync(context, NullProtocolDiagnostics.Instance, token);
         }
 
-        private async Task<HashSet<SourcePackageDependencyInfo>> GatherAsync(CancellationToken token)
+        /// <summary>
+        /// Gather packages
+        /// </summary>
+        public static async Task<HashSet<SourcePackageDependencyInfo>> GatherAsync(
+            GatherContext context,
+            IProtocolDiagnostics protocolDiagnostics,
+            CancellationToken token)
+        {
+            var engine = new ResolverGather(context);
+            return await engine.GatherAsync(protocolDiagnostics, token);
+        }
+
+        private async Task<HashSet<SourcePackageDependencyInfo>> GatherAsync(IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             // preserve start time of gather api
             var stopWatch = new Stopwatch();
@@ -88,7 +100,7 @@ namespace NuGet.PackageManagement
             var combinedResults = new HashSet<SourcePackageDependencyInfo>(PackageIdentity.Comparer);
 
             // Initialize dependency info resources in parallel
-            await InitializeResourcesAsync(token);
+            await InitializeResourcesAsync(protocolDiagnostics, token);
 
             var allPrimaryTargets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -114,10 +126,10 @@ namespace NuGet.PackageManagement
             }
 
             // Start fetching the primary targets
-            StartWorkerTasks(token);
+            StartWorkerTasks(protocolDiagnostics, token);
 
             // Gather installed packages
-            await GatherInstalledPackagesAsync(_context.InstalledPackages, allPrimaryTargets, token);
+            await GatherInstalledPackagesAsync(_context.InstalledPackages, allPrimaryTargets, protocolDiagnostics, token);
 
             // walk the dependency graph both upwards and downwards for the new package
             // this is done in multiple passes to find the complete closure when
@@ -127,7 +139,7 @@ namespace NuGet.PackageManagement
                 token.ThrowIfCancellationRequested();
 
                 // Start tasks for queued requests and process finished results.
-                await StartTasksAndProcessWork(token);
+                await StartTasksAndProcessWork(protocolDiagnostics, token);
 
                 // Completed results
                 var currentItems = _results.ToList();
@@ -244,7 +256,7 @@ namespace NuGet.PackageManagement
         /// This method will continue until at least 1 task has finished,
         /// and keep going until all queued requests have been started.
         /// </summary>
-        private async Task StartTasksAndProcessWork(CancellationToken token)
+        private async Task StartTasksAndProcessWork(IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             // Start new tasks and process the work at least once
             // Continuing looping under the number of tasks has gone
@@ -255,7 +267,7 @@ namespace NuGet.PackageManagement
                 token.ThrowIfCancellationRequested();
 
                 // Run queued work
-                StartWorkerTasks(token);
+                StartWorkerTasks(protocolDiagnostics, token);
 
                 // Wait for at least one of the tasks to finish before processing results
                 if (_workerTasks.Count > 0)
@@ -269,20 +281,20 @@ namespace NuGet.PackageManagement
             while (_workerTasks.Count >= MaxDegreeOfParallelism);
 
             // Start more tasks after processing
-            StartWorkerTasks(token);
+            StartWorkerTasks(protocolDiagnostics, token);
         }
 
         /// <summary>
         /// Retrieve already installed packages
         /// </summary>
-        private async Task GatherInstalledPackagesAsync(IEnumerable<PackageIdentity> installedPackages, HashSet<string> allPrimaryTargets, CancellationToken token)
+        private async Task GatherInstalledPackagesAsync(IEnumerable<PackageIdentity> installedPackages, HashSet<string> allPrimaryTargets, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             foreach (var installedPackage in installedPackages)
             {
                 // Skip installed packages which are targets, this is important for upgrade and reinstall
                 if (!allPrimaryTargets.Contains(installedPackage.Id))
                 {
-                    var packageInfo = await _packagesFolderResource.ResolvePackage(installedPackage, _context.TargetFramework, _context.ResolutionContext.SourceCacheContext, _context.Log, token);
+                    var packageInfo = await _packagesFolderResource.ResolvePackage(installedPackage, _context.TargetFramework, _context.ResolutionContext.SourceCacheContext, _context.Log, protocolDiagnostics, token);
 
                     // Installed packages should exist, but if they do not an attempt will be made to find them in the sources.
                     if (packageInfo != null)
@@ -368,12 +380,12 @@ namespace NuGet.PackageManagement
         /// <summary>
         /// Load up to the MaxThread count
         /// </summary>
-        private void StartWorkerTasks(CancellationToken token)
+        private void StartWorkerTasks(IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             while (_workerTasks.Count < MaxDegreeOfParallelism && _gatherRequests.Count > 0)
             {
                 var request = _gatherRequests.Dequeue();
-                var task = Task.Run(async () => await GatherPackageAsync(request, token));
+                var task = Task.Run(async () => await GatherPackageAsync(request, protocolDiagnostics, token));
                 _workerTasks.Add(task);
             }
         }
@@ -381,7 +393,7 @@ namespace NuGet.PackageManagement
         /// <summary>
         /// Retrieve the packages from the cache or source
         /// </summary>
-        private async Task<GatherResult> GatherPackageAsync(GatherRequest request, CancellationToken token)
+        private async Task<GatherResult> GatherPackageAsync(GatherRequest request, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -428,6 +440,7 @@ namespace NuGet.PackageManagement
                             request.Source.Resource,
                             _context.TargetFramework,
                             request.IgnoreExceptions,
+                            protocolDiagnostics,
                             linkedTokenSource.Token);
 
                         // add packages to the cache
@@ -484,6 +497,7 @@ namespace NuGet.PackageManagement
             DependencyInfoResource resource,
             NuGetFramework targetFramework,
             bool ignoreExceptions,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -496,7 +510,7 @@ namespace NuGet.PackageManagement
                 if (version == null)
                 {
                     // find all versions of a package
-                    var packages = await resource.ResolvePackages(packageId, targetFramework, _context.ResolutionContext.SourceCacheContext, _context.Log, token);
+                    var packages = await resource.ResolvePackages(packageId, targetFramework, _context.ResolutionContext.SourceCacheContext, _context.Log, protocolDiagnostics, token);
 
                     results.AddRange(packages);
                 }
@@ -504,7 +518,7 @@ namespace NuGet.PackageManagement
                 {
                     // find a single package id and version
                     var identity = new PackageIdentity(packageId, version);
-                    var package = await resource.ResolvePackage(identity, targetFramework, _context.ResolutionContext.SourceCacheContext, _context.Log, token);
+                    var package = await resource.ResolvePackage(identity, targetFramework, _context.ResolutionContext.SourceCacheContext, _context.Log, protocolDiagnostics, token);
 
                     if (package != null)
                     {
@@ -551,7 +565,7 @@ namespace NuGet.PackageManagement
             }
         }
 
-        private async Task InitializeResourcesAsync(CancellationToken token)
+        private async Task InitializeResourcesAsync(IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var currentSource = string.Empty;
             try
@@ -571,7 +585,7 @@ namespace NuGet.PackageManagement
                 {
                     if (!depResources.ContainsKey(source))
                     {
-                        var task = Task.Run(async () => await source.GetResourceAsync<DependencyInfoResource>(token));
+                        var task = Task.Run(async () => await source.GetResourceAsync<DependencyInfoResource>(protocolDiagnostics, token));
 
                         getResourceTasks.Add(task);
                         depResources.Add(source, task);
@@ -622,7 +636,7 @@ namespace NuGet.PackageManagement
 
 
                 // Installed packages resource
-                _packagesFolderResource = await _context.PackagesFolderSource.GetResourceAsync<DependencyInfoResource>(token);
+                _packagesFolderResource = await _context.PackagesFolderSource.GetResourceAsync<DependencyInfoResource>(protocolDiagnostics, token);
             }
             catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is OperationCanceledException ||
                                        ex is InvalidOperationException || ex is TaskCanceledException || ex is AggregateException)

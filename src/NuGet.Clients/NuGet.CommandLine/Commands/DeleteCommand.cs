@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using NuGet.Commands;
+using NuGet.Common;
 
 namespace NuGet.CommandLine
 {
@@ -51,7 +52,10 @@ namespace NuGet.CommandLine
                 NonInteractive,
                 NoServiceEndpoint,
                 Console.Confirm,
-                Console);
+                Console,
+#pragma warning disable CS0618 // Type or member is obsolete
+                NullProtocolDiagnostics.Instance);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

@@ -34,7 +34,13 @@ namespace NuGet.Commands
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public async Task<int> ExecuteCommandAsync(TrustedSignersArgs trustedSignersArgs)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task<int> ExecuteCommandAsync(TrustedSignersArgs trustedSignersArgs)
+        {
+            return ExecuteCommandAsync(trustedSignersArgs, NullProtocolDiagnostics.Instance);
+        }
+
+        public async Task<int> ExecuteCommandAsync(TrustedSignersArgs trustedSignersArgs, IProtocolDiagnostics protocolDiagnostics)
         {
             var logger = trustedSignersArgs.Logger ?? NullLogger.Instance;
             var actionsProvider = new TrustedSignerActionsProvider(_trustedSignersProvider, logger);
@@ -127,6 +133,7 @@ namespace NuGet.Commands
                             trustedSignersArgs.Name,
                             serviceIndex,
                             trustedSignersArgs.Owners,
+                            protocolDiagnostics,
                             CancellationToken.None);
 
                         break;
@@ -172,6 +179,7 @@ namespace NuGet.Commands
                         trustedSignersArgs.Name,
                         sourceServiceIndex,
                         trustedSignersArgs.Owners,
+                        protocolDiagnostics,
                         CancellationToken.None);
 
 
@@ -187,7 +195,7 @@ namespace NuGet.Commands
                 case TrustedSignersAction.Sync:
                     ValidateSyncArguments(trustedSignersArgs);
 
-                    await actionsProvider.SyncTrustedRepositoryAsync(trustedSignersArgs.Name, CancellationToken.None);
+                    await actionsProvider.SyncTrustedRepositoryAsync(trustedSignersArgs.Name, protocolDiagnostics, CancellationToken.None);
 
                     break;
             }

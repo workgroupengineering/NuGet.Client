@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -20,12 +20,28 @@ namespace NuGet.PackageManagement
         /// <summary>
         /// Download all needed packages for install actions.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<Dictionary<PackageIdentity, PackagePreFetcherResult>> GetPackagesAsync(
+            IEnumerable<NuGetProjectAction> actions,
+            FolderNuGetProject packagesFolder,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return GetPackagesAsync(actions, packagesFolder, downloadContext, globalPackagesFolder, logger, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Download all needed packages for install actions.
+        /// </summary>
         public static async Task<Dictionary<PackageIdentity, PackagePreFetcherResult>> GetPackagesAsync(
             IEnumerable<NuGetProjectAction> actions,
             FolderNuGetProject packagesFolder,
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (actions == null)
@@ -133,6 +149,7 @@ namespace NuGet.PackageManagement
                                         downloadContext,
                                         globalPackagesFolder,
                                         logger,
+                                        protocolDiagnostics,
                                         token));
 
                     var downloadResult = new PackagePreFetcherResult(

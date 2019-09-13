@@ -25,16 +25,32 @@ namespace NuGet.Commands
         /// <summary>
         /// Log errors for missing dependencies.
         /// </summary>
-        public static async Task LogAsync(IEnumerable<IRestoreTargetGraph> graphs, RemoteWalkContext context, ILogger logger, CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task LogAsync(IEnumerable<IRestoreTargetGraph> graphs, RemoteWalkContext context, ILogger logger, CancellationToken token)
         {
-            var tasks = graphs.SelectMany(graph => graph.Unresolved.Select(e => GetMessageAsync(graph.TargetGraphName, e, context.RemoteLibraryProviders, context.CacheContext, logger, token))).ToArray();
+            return LogAsync(graphs, context, logger, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Log errors for missing dependencies.
+        /// </summary>
+        public static async Task LogAsync(IEnumerable<IRestoreTargetGraph> graphs, RemoteWalkContext context, ILogger logger, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
+        {
+            var tasks = graphs.SelectMany(graph => graph.Unresolved.Select(e => GetMessageAsync(graph.TargetGraphName, e, context.RemoteLibraryProviders, context.CacheContext, logger, protocolDiagnostics, token))).ToArray();
             var messages = await Task.WhenAll(tasks);
 
             await logger.LogMessagesAsync(DiagnosticUtility.MergeOnTargetGraph(messages));
         }
 
-        public static async Task LogAsync(IList<DownloadDependencyResolutionResult> downloadDependencyResults, IList<IRemoteDependencyProvider> remoteLibraryProviders, SourceCacheContext sourceCacheContext,
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task LogAsync(IList<DownloadDependencyResolutionResult> downloadDependencyResults, IList<IRemoteDependencyProvider> remoteLibraryProviders, SourceCacheContext sourceCacheContext,
             ILogger logger, CancellationToken token)
+        {
+            return LogAsync(downloadDependencyResults, remoteLibraryProviders, sourceCacheContext, logger, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public static async Task LogAsync(IList<DownloadDependencyResolutionResult> downloadDependencyResults, IList<IRemoteDependencyProvider> remoteLibraryProviders, SourceCacheContext sourceCacheContext,
+            ILogger logger, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var messageTasks = new List<Task<RestoreLogMessage>>();
 
@@ -47,6 +63,7 @@ namespace NuGet.Commands
                         unresolved,
                         remoteLibraryProviders, sourceCacheContext,
                         logger,
+                        protocolDiagnostics,
                         token));
                 }
             }
@@ -58,11 +75,26 @@ namespace NuGet.Commands
         /// <summary>
         /// Create a specific error message for the unresolved dependency.
         /// </summary>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<RestoreLogMessage> GetMessageAsync(string targetGraphName,
+            LibraryRange unresolved,
+            IList<IRemoteDependencyProvider> remoteLibraryProviders,
+            SourceCacheContext sourceCacheContext,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return GetMessageAsync(targetGraphName, unresolved, remoteLibraryProviders, sourceCacheContext, logger, token);
+        }
+
+        /// <summary>
+        /// Create a specific error message for the unresolved dependency.
+        /// </summary>
         public static async Task<RestoreLogMessage> GetMessageAsync(string targetGraphName,
             LibraryRange unresolved,
             IList<IRemoteDependencyProvider> remoteLibraryProviders,
             SourceCacheContext sourceCacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             // Default to using the generic unresolved error code, this will be overridden later.
@@ -91,7 +123,7 @@ namespace NuGet.Commands
             {
                 // Package
                 var range = unresolved.VersionRange ?? VersionRange.All;
-                var sourceInfo = await GetSourceInfosForIdAsync(unresolved.Name, range, remoteLibraryProviders, sourceCacheContext, logger, token);
+                var sourceInfo = await GetSourceInfosForIdAsync(unresolved.Name, range, remoteLibraryProviders, sourceCacheContext, logger, protocolDiagnostics, token);
                 var allVersions = new SortedSet<NuGetVersion>(sourceInfo.SelectMany(e => e.Value));
 
                 if (allVersions.Count == 0)
@@ -200,13 +232,14 @@ namespace NuGet.Commands
             IList<IRemoteDependencyProvider> remoteLibraryProviders,
             SourceCacheContext sourceCacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var sources = new List<KeyValuePair<PackageSource, SortedSet<NuGetVersion>>>();
 
             // Get versions from all sources. These should be cached by the providers already.
             var tasks = remoteLibraryProviders
-                .Select(e => GetSourceInfoForIdAsync(e, id, sourceCacheContext, logger, token))
+                .Select(e => GetSourceInfoForIdAsync(e, id, sourceCacheContext, logger, protocolDiagnostics, token))
                 .ToArray();
 
             foreach (var task in tasks)
@@ -228,10 +261,11 @@ namespace NuGet.Commands
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             // Find all versions from a source.
-            var versions = await provider.GetAllVersionsAsync(id, cacheContext, logger, token) ?? Enumerable.Empty<NuGetVersion>();
+            var versions = await provider.GetAllVersionsAsync(id, cacheContext, logger, protocolDiagnostics, token) ?? Enumerable.Empty<NuGetVersion>();
 
             return new KeyValuePair<PackageSource, SortedSet<NuGetVersion>>(
                 provider.Source,

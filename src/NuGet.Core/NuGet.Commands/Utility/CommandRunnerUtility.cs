@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -67,7 +68,13 @@ namespace NuGet.Commands
             return apiKey ?? defaultApiKey;
         }
 
-        public static async Task<PackageUpdateResource> GetPackageUpdateResource(IPackageSourceProvider sourceProvider, string source)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<PackageUpdateResource> GetPackageUpdateResource(IPackageSourceProvider sourceProvider, string source)
+        {
+            return GetPackageUpdateResource(sourceProvider, source, NullProtocolDiagnostics.Instance);
+        }
+
+        public static async Task<PackageUpdateResource> GetPackageUpdateResource(IPackageSourceProvider sourceProvider, string source, IProtocolDiagnostics protocolDiagnostics)
         {
             // Use a loaded PackageSource if possible since it contains credential info
             PackageSource packageSource = null;
@@ -88,10 +95,16 @@ namespace NuGet.Commands
             var sourceRepositoryProvider = new CachingSourceProvider(sourceProvider);
             var sourceRepository = sourceRepositoryProvider.CreateRepository(packageSource);
 
-            return await sourceRepository.GetResourceAsync<PackageUpdateResource>();
+            return await sourceRepository.GetResourceAsync<PackageUpdateResource>(protocolDiagnostics);
         }
 
-        public static async Task<SymbolPackageUpdateResourceV3> GetSymbolPackageUpdateResource(IPackageSourceProvider sourceProvider, string source)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<SymbolPackageUpdateResourceV3> GetSymbolPackageUpdateResource(IPackageSourceProvider sourceProvider, string source)
+        {
+            return GetSymbolPackageUpdateResource(sourceProvider, source, NullProtocolDiagnostics.Instance);
+        }
+
+        public static async Task<SymbolPackageUpdateResourceV3> GetSymbolPackageUpdateResource(IPackageSourceProvider sourceProvider, string source, IProtocolDiagnostics protocolDiagnostics)
         {
             // Use a loaded PackageSource if possible since it contains credential info
             var packageSource = sourceProvider.LoadPackageSources()
@@ -106,7 +119,7 @@ namespace NuGet.Commands
             var sourceRepositoryProvider = new CachingSourceProvider(sourceProvider);
             var sourceRepository = sourceRepositoryProvider.CreateRepository(packageSource);
 
-            return await sourceRepository.GetResourceAsync<SymbolPackageUpdateResourceV3>();
+            return await sourceRepository.GetResourceAsync<SymbolPackageUpdateResourceV3>(protocolDiagnostics);
         }
     }
 }

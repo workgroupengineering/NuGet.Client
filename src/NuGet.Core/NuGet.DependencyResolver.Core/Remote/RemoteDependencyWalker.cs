@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.RuntimeModel;
@@ -24,9 +25,15 @@ namespace NuGet.DependencyResolver
             _context = context;
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<GraphNode<RemoteResolveResult>> WalkAsync(LibraryRange library, NuGetFramework framework, string runtimeIdentifier, RuntimeGraph runtimeGraph, bool recursive)
         {
-            return CreateGraphNode(library, framework, runtimeIdentifier, runtimeGraph, _ => recursive ? DependencyResult.Acceptable : DependencyResult.Eclipsed, outerEdge: null);
+            return WalkAsync(library, framework, runtimeIdentifier, runtimeGraph, recursive, NullProtocolDiagnostics.Instance);
+        }
+
+        public Task<GraphNode<RemoteResolveResult>> WalkAsync(LibraryRange library, NuGetFramework framework, string runtimeIdentifier, RuntimeGraph runtimeGraph, bool recursive, IProtocolDiagnostics protocolDiagnostics)
+        {
+            return CreateGraphNode(library, framework, runtimeIdentifier, runtimeGraph, _ => recursive ? DependencyResult.Acceptable : DependencyResult.Eclipsed, outerEdge: null, protocolDiagnostics);
         }
 
         private async Task<GraphNode<RemoteResolveResult>> CreateGraphNode(
@@ -35,7 +42,8 @@ namespace NuGet.DependencyResolver
             string runtimeName,
             RuntimeGraph runtimeGraph,
             Func<LibraryRange, DependencyResult> predicate,
-            GraphEdge<RemoteResolveResult> outerEdge)
+            GraphEdge<RemoteResolveResult> outerEdge,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             List<LibraryDependency> dependencies = null;
             HashSet<string> runtimeDependencies = null;
@@ -92,6 +100,7 @@ namespace NuGet.DependencyResolver
                     framework,
                     runtimeName,
                     _context,
+                    protocolDiagnostics,
                     CancellationToken.None)
             };
 
@@ -155,7 +164,8 @@ namespace NuGet.DependencyResolver
                             runtimeName,
                             runtimeGraph,
                             ChainPredicate(predicate, node, dependency),
-                            innerEdge));
+                            innerEdge,
+                            protocolDiagnostics));
                     }
                     else
                     {

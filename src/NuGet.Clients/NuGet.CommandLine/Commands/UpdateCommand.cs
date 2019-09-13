@@ -318,6 +318,9 @@ namespace NuGet.CommandLine
                             project.NuGetProjectContext,
                             sourceRepositories,
                             Enumerable.Empty<SourceRepository>(),
+#pragma warning disable CS0618 // Type or member is obsolete
+                            NullProtocolDiagnostics.Instance,
+#pragma warning restore CS0618 // Type or member is obsolete
                             CancellationToken.None);
 
                         projectActions.AddRange(actions);
@@ -331,6 +334,9 @@ namespace NuGet.CommandLine
                             project.NuGetProjectContext,
                             sourceRepositories,
                             Enumerable.Empty<SourceRepository>(),
+#pragma warning disable CS0618 // Type or member is obsolete
+                            NullProtocolDiagnostics.Instance,
+#pragma warning restore CS0618 // Type or member is obsolete
                             CancellationToken.None);
                     projectActions.AddRange(actions);
                 }
@@ -340,6 +346,9 @@ namespace NuGet.CommandLine
                     projectActions,
                     project.NuGetProjectContext,
                     sourceCacheContext,
+#pragma warning disable CS0618 // Type or member is obsolete
+                    NullProtocolDiagnostics.Instance,
+#pragma warning restore CS0618 // Type or member is obsolete
                     CancellationToken.None);
             }
 

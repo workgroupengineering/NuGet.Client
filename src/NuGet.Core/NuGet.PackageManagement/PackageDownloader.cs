@@ -44,12 +44,49 @@ namespace NuGet.PackageManagement
         /// is either <c>null</c> or empty.</exception>
         /// <exception cref="OperationCanceledException">Thrown if <paramref name="token" />
         /// is cancelled.</exception>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<DownloadResourceResult> GetDownloadResourceResultAsync(
+            IEnumerable<SourceRepository> sources,
+            PackageIdentity packageIdentity,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return GetDownloadResourceResultAsync(sources, packageIdentity, downloadContext, globalPackagesFolder, logger, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Asynchronously returns a <see cref="DownloadResourceResult" /> for a given package identity
+        /// and enumerable of source repositories.
+        /// </summary>
+        /// <param name="sources">An enumerable of source repositories.</param>
+        /// <param name="packageIdentity">A package identity.</param>
+        /// <param name="downloadContext">A package download context.</param>
+        /// <param name="globalPackagesFolder">A global packages folder path.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
+        /// <param name="token">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="DownloadResourceResult" />
+        /// instance.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="sources" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="packageIdentity" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="downloadContext" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="OperationCanceledException">Thrown if <paramref name="token" />
+        /// is cancelled.</exception>
         public static async Task<DownloadResourceResult> GetDownloadResourceResultAsync(
             IEnumerable<SourceRepository> sources,
             PackageIdentity packageIdentity,
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (sources == null)
@@ -113,6 +150,7 @@ namespace NuGet.PackageManagement
                             downloadContext,
                             globalPackagesFolder,
                             logger,
+                            protocolDiagnostics,
                             linkedTokenSource.Token);
 
                         tasksLookup.Add(task, source);
@@ -226,12 +264,49 @@ namespace NuGet.PackageManagement
         /// is either <c>null</c> or empty.</exception>
         /// <exception cref="OperationCanceledException">Thrown if <paramref name="token" />
         /// is cancelled.</exception>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<DownloadResourceResult> GetDownloadResourceResultAsync(
+            SourceRepository sourceRepository,
+            PackageIdentity packageIdentity,
+            PackageDownloadContext downloadContext,
+            string globalPackagesFolder,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return GetDownloadResourceResultAsync(sourceRepository, packageIdentity, downloadContext, globalPackagesFolder, logger, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Asynchronously returns a <see cref="DownloadResourceResult" /> for a given package identity
+        /// and source repository.
+        /// </summary>
+        /// <param name="sourceRepository">A source repository.</param>
+        /// <param name="packageIdentity">A package identity.</param>
+        /// <param name="downloadContext">A package download context.</param>
+        /// <param name="globalPackagesFolder">A global packages folder path.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
+        /// <param name="token">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="DownloadResourceResult" />
+        /// instance.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="sourceRepository" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="packageIdentity" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="downloadContext" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="OperationCanceledException">Thrown if <paramref name="token" />
+        /// is cancelled.</exception>
         public static async Task<DownloadResourceResult> GetDownloadResourceResultAsync(
             SourceRepository sourceRepository,
             PackageIdentity packageIdentity,
             PackageDownloadContext downloadContext,
             string globalPackagesFolder,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (sourceRepository == null)
@@ -254,7 +329,7 @@ namespace NuGet.PackageManagement
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            var downloadResource = await sourceRepository.GetResourceAsync<DownloadResource>(token);
+            var downloadResource = await sourceRepository.GetResourceAsync<DownloadResource>(protocolDiagnostics, token);
 
             if (downloadResource == null)
             {
@@ -275,6 +350,7 @@ namespace NuGet.PackageManagement
                    downloadContext,
                    globalPackagesFolder,
                    logger,
+                   protocolDiagnostics,
                    token);
             }
             catch (OperationCanceledException)

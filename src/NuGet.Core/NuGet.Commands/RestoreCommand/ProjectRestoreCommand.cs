@@ -48,7 +48,8 @@ namespace NuGet.Commands
             RemoteWalkContext context,
             bool forceRuntimeGraphCreation,
             CancellationToken token,
-            TelemetryActivity telemetryActivity)
+            TelemetryActivity telemetryActivity,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             var allRuntimes = RuntimeGraph.Empty;
             var frameworkTasks = new List<Task<RestoreTargetGraph>>();
@@ -66,6 +67,7 @@ namespace NuGet.Commands
                     pair.Key,
                     remoteWalker,
                     context,
+                    protocolDiagnostics,
                     token: token));
             }
 
@@ -85,6 +87,7 @@ namespace NuGet.Commands
                     context,
                     ddLibraryRangeToRemoteMatchCache,
                     targetFrameworkInformation,
+                    protocolDiagnostics,
                     token));
             }
 
@@ -99,6 +102,7 @@ namespace NuGet.Commands
                 graphs,
                 downloadDependencyResolutionResults,
                 userPackageFolder,
+                protocolDiagnostics,
                 token);
 
             // Check if any non-empty RIDs exist before reading the runtime graph (runtime.json).
@@ -148,6 +152,7 @@ namespace NuGet.Commands
                         remoteWalker,
                         context,
                         runtimeGraph,
+                        protocolDiagnostics,
                         token: token));
                 }
 
@@ -166,6 +171,7 @@ namespace NuGet.Commands
                     runtimeGraphs,
                     Array.Empty<DownloadDependencyResolutionResult>(),
                     userPackageFolder,
+                    protocolDiagnostics,
                     token);
             }
 
@@ -178,7 +184,7 @@ namespace NuGet.Commands
             // TODO https://github.com/NuGet/Home/issues/7709: When ranges are implemented for download dependencies the bumped up dependencies need to be handled.
             await UnexpectedDependencyMessages.LogAsync(graphs, _request.Project, _logger);
 
-            success &= (await ResolutionSucceeded(graphs, downloadDependencyResolutionResults, context, token));
+            success &= (await ResolutionSucceeded(graphs, downloadDependencyResolutionResults, context, protocolDiagnostics, token));
 
             return Tuple.Create(success, graphs, allRuntimes);
         }
@@ -220,10 +226,10 @@ namespace NuGet.Commands
             return null;
         }
 
-        private async Task<DownloadDependencyResolutionResult> ResolveDownloadDependencies(RemoteWalkContext context, ConcurrentDictionary<LibraryRange, Task<Tuple<LibraryRange, RemoteMatch>>> downloadDependenciesCache, TargetFrameworkInformation targetFrameworkInformation, CancellationToken token)
+        private async Task<DownloadDependencyResolutionResult> ResolveDownloadDependencies(RemoteWalkContext context, ConcurrentDictionary<LibraryRange, Task<Tuple<LibraryRange, RemoteMatch>>> downloadDependenciesCache, TargetFrameworkInformation targetFrameworkInformation, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var packageDownloadTasks = targetFrameworkInformation.DownloadDependencies.Select(downloadDependency => ResolverUtility.FindPackageLibraryMatchCachedAsync(
-                    downloadDependenciesCache, downloadDependency, context.RemoteLibraryProviders, context.LocalLibraryProviders, context.CacheContext, _logger, token));
+                    downloadDependenciesCache, downloadDependency, context.RemoteLibraryProviders, context.LocalLibraryProviders, context.CacheContext, _logger, protocolDiagnostics, token));
 
             var packageDownloadMatches = await Task.WhenAll(packageDownloadTasks);
 
@@ -234,6 +240,7 @@ namespace NuGet.Commands
             NuGetFramework framework,
             RemoteDependencyWalker walker,
             RemoteWalkContext context,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             return WalkDependenciesAsync(projectRange,
@@ -242,6 +249,7 @@ namespace NuGet.Commands
                 runtimeGraph: RuntimeGraph.Empty,
                 walker: walker,
                 context: context,
+                protocolDiagnostics,
                 token: token);
         }
 
@@ -251,6 +259,7 @@ namespace NuGet.Commands
             RuntimeGraph runtimeGraph,
             RemoteDependencyWalker walker,
             RemoteWalkContext context,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var name = FrameworkRuntimePair.GetTargetGraphName(framework, runtimeIdentifier);
@@ -261,7 +270,8 @@ namespace NuGet.Commands
                 framework,
                 runtimeIdentifier,
                 runtimeGraph,
-                recursive: true)
+                recursive: true,
+                protocolDiagnostics)
             };
 
             // Resolve conflicts
@@ -271,7 +281,7 @@ namespace NuGet.Commands
             return RestoreTargetGraph.Create(runtimeGraph, graphs, context, _logger, framework, runtimeIdentifier);
         }
 
-        private async Task<bool> ResolutionSucceeded(IEnumerable<RestoreTargetGraph> graphs, IList<DownloadDependencyResolutionResult> downloadDependencyResults, RemoteWalkContext context, CancellationToken token)
+        private async Task<bool> ResolutionSucceeded(IEnumerable<RestoreTargetGraph> graphs, IList<DownloadDependencyResolutionResult> downloadDependencyResults, RemoteWalkContext context, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var graphSuccess = true;
             foreach (var graph in graphs)
@@ -302,14 +312,14 @@ namespace NuGet.Commands
             if (!graphSuccess)
             {
                 // Log message for any unresolved dependencies
-                await UnresolvedMessages.LogAsync(graphs, context, context.Logger, token);
+                await UnresolvedMessages.LogAsync(graphs, context, context.Logger, protocolDiagnostics, token);
             }
 
             var ddSuccess = downloadDependencyResults.All(e => e.Unresolved.Count == 0);
 
             if (!ddSuccess)
             {
-                await UnresolvedMessages.LogAsync(downloadDependencyResults, context.RemoteLibraryProviders, context.CacheContext, context.Logger, token);
+                await UnresolvedMessages.LogAsync(downloadDependencyResults, context.RemoteLibraryProviders, context.CacheContext, context.Logger, protocolDiagnostics, token);
             }
 
             return graphSuccess && ddSuccess;
@@ -320,6 +330,7 @@ namespace NuGet.Commands
             IEnumerable<RestoreTargetGraph> graphs,
             IList<DownloadDependencyResolutionResult> downloadDependencyInformations,
             NuGetv3LocalRepository userPackageFolder,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var packagesToInstall = graphs
@@ -340,7 +351,7 @@ namespace NuGet.Commands
                 {
                     foreach (var match in packagesToInstall)
                     {
-                        success &= (await InstallPackageAsync(match, userPackageFolder, _request.PackageExtractionContext, token));
+                        success &= (await InstallPackageAsync(match, userPackageFolder, _request.PackageExtractionContext, protocolDiagnostics, token));
                     }
                 }
                 else
@@ -353,7 +364,7 @@ namespace NuGet.Commands
                             var result = true;
                             while (bag.TryTake(out match))
                             {
-                                result &= await InstallPackageAsync(match, userPackageFolder, _request.PackageExtractionContext, token);
+                                result &= await InstallPackageAsync(match, userPackageFolder, _request.PackageExtractionContext, protocolDiagnostics, token);
                             }
                             return result;
                         });
@@ -365,7 +376,7 @@ namespace NuGet.Commands
             return success;
         }
 
-        private async Task<bool> InstallPackageAsync(RemoteMatch installItem, NuGetv3LocalRepository userPackageFolder, PackageExtractionContext packageExtractionContext, CancellationToken token)
+        private async Task<bool> InstallPackageAsync(RemoteMatch installItem, NuGetv3LocalRepository userPackageFolder, PackageExtractionContext packageExtractionContext, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             var packageIdentity = new PackageIdentity(installItem.Library.Name, installItem.Library.Version);
 
@@ -380,6 +391,7 @@ namespace NuGet.Commands
                         packageIdentity,
                         _request.CacheContext,
                         _logger,
+                        protocolDiagnostics,
                         token))
                     {
                         // Install, returns true if the package was actually installed.
@@ -390,6 +402,7 @@ namespace NuGet.Commands
                             packageDependency,
                             versionFolderPathResolver,
                             packageExtractionContext,
+                            protocolDiagnostics,
                             token,
                             ParentId);
 
@@ -432,6 +445,7 @@ namespace NuGet.Commands
             RemoteDependencyWalker walker,
             RemoteWalkContext context,
             RuntimeGraph runtimes,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var resultGraphs = new List<Task<RestoreTargetGraph>>();
@@ -445,6 +459,7 @@ namespace NuGet.Commands
                     runtimes,
                     walker,
                     context,
+                    protocolDiagnostics,
                     token));
             }
 

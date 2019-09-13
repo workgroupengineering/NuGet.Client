@@ -214,7 +214,15 @@ namespace NuGet.CommandLine
         }
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "We want to continue regardless of any error we encounter extracting metadata.")]
-        public Packaging.PackageBuilder CreateBuilder(string basePath, NuGetVersion version, string suffix, bool buildIfNeeded, Packaging.PackageBuilder builder =null)
+        public Packaging.PackageBuilder CreateBuilder(string basePath, NuGetVersion version, string suffix, bool buildIfNeeded, Packaging.PackageBuilder builder = null)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return CreateBuilder(basePath, version, suffix, buildIfNeeded, NullProtocolDiagnostics.Instance, builder);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "We want to continue regardless of any error we encounter extracting metadata.")]
+        public Packaging.PackageBuilder CreateBuilder(string basePath, NuGetVersion version, string suffix, bool buildIfNeeded, IProtocolDiagnostics protocolDiagnostics, Packaging.PackageBuilder builder =null)
         {
             if (buildIfNeeded)
             {
@@ -322,7 +330,7 @@ namespace NuGet.CommandLine
                 
             }
 
-            ProcessDependencies(builder);
+            ProcessDependencies(builder, protocolDiagnostics);
 
             // Set defaults if some required fields are missing
             if (String.IsNullOrEmpty(builder.Description))
@@ -876,11 +884,11 @@ namespace NuGet.CommandLine
             }
         }
 
-        private void ProcessDependencies(Packaging.PackageBuilder builder)
+        private void ProcessDependencies(Packaging.PackageBuilder builder, IProtocolDiagnostics protocolDiagnostics)
         {
             // get all packages and dependencies, including the ones in project references
             var packagesAndDependencies = new Dictionary<String, Tuple<PackageReaderBase, Packaging.Core.PackageDependency>>();
-            ApplyAction(p => p.AddDependencies(packagesAndDependencies));
+            ApplyAction(p => p.AddDependencies(packagesAndDependencies, protocolDiagnostics));
 
             // list of all dependency packages
             var packages = packagesAndDependencies.Values.Select(t => t.Item1).ToList();
@@ -990,7 +998,7 @@ namespace NuGet.CommandLine
             return !found;
         }
 
-        private void AddDependencies(Dictionary<String, Tuple<PackageReaderBase, Packaging.Core.PackageDependency>> packagesAndDependencies)
+        private void AddDependencies(Dictionary<String, Tuple<PackageReaderBase, Packaging.Core.PackageDependency>> packagesAndDependencies, IProtocolDiagnostics protocolDiagnostics)
         {
             Dictionary<string, object> props = new Dictionary<string, object>();
 
@@ -1039,7 +1047,7 @@ namespace NuGet.CommandLine
             var findLocalPackagesResource = Repository
                 .Factory
                 .GetCoreV3(packagesFolderPath)
-                .GetResource<FindLocalPackagesResource>();
+                .GetResource<FindLocalPackagesResource>(protocolDiagnostics);
 
             // Collect all packages
             IDictionary<PackageIdentity, PackageReference> packageReferences =

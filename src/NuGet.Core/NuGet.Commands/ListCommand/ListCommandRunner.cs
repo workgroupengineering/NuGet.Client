@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -23,8 +23,17 @@ namespace NuGet.Commands
         /// Executes the logic for nuget list command.
         /// </summary>
         /// <returns></returns>
-        public async Task ExecuteCommand(ListArgs listArgs)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task ExecuteCommand(ListArgs listArgs)
+        {
+            return ExecuteCommand(listArgs, NullProtocolDiagnostics.Instance);
+        }
 
+        /// <summary>
+        /// Executes the logic for nuget list command.
+        /// </summary>
+        /// <returns></returns>
+        public async Task ExecuteCommand(ListArgs listArgs, IProtocolDiagnostics protocolDiagnostics)
         {
             //Create SourceFeed for each packageSource
             var sourceFeeds = new List<ListResource>();
@@ -34,7 +43,7 @@ namespace NuGet.Commands
             foreach (PackageSource packageSource in listArgs.ListEndpoints)
             {
                 var sourceRepository = Repository.Factory.GetCoreV3(packageSource.Source);
-                var feed = await sourceRepository.GetResourceAsync<ListResource>(listArgs.CancellationToken);
+                var feed = await sourceRepository.GetResourceAsync<ListResource>(protocolDiagnostics, listArgs.CancellationToken);
 
                 if (feed != null)
                 {
@@ -55,7 +64,7 @@ namespace NuGet.Commands
             {
                 var packagesFromSource =
                     await feed.ListAsync(listArgs.Arguments.FirstOrDefault(), listArgs.Prerelease, listArgs.AllVersions,
-                        listArgs.IncludeDelisted, log, listArgs.CancellationToken);
+                        listArgs.IncludeDelisted, log, protocolDiagnostics, listArgs.CancellationToken);
                 allPackages.Add(packagesFromSource);
             }
             ComparePackageSearchMetadata comparer = new ComparePackageSearchMetadata();

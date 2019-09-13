@@ -183,9 +183,23 @@ namespace NuGet.PackageManagement
         /// Restores missing packages for the entire solution
         /// </summary>
         /// <returns></returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<PackageRestoreResult> RestoreMissingPackagesInSolutionAsync(
+            string solutionDirectory,
+            INuGetProjectContext nuGetProjectContext,
+            CancellationToken token)
+        {
+            return RestoreMissingPackagesInSolutionAsync(solutionDirectory, nuGetProjectContext, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Restores missing packages for the entire solution
+        /// </summary>
+        /// <returns></returns>
         public virtual async Task<PackageRestoreResult> RestoreMissingPackagesInSolutionAsync(
             string solutionDirectory,
             INuGetProjectContext nuGetProjectContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var packageReferencesDictionary = await GetPackagesReferencesDictionaryAsync(token);
@@ -213,8 +227,23 @@ namespace NuGet.PackageManagement
                     nuGetProjectContext,
                     downloadContext,
                     NullLogger.Instance,
+                    protocolDiagnostics,
                     token);
             }
+        }
+
+        /// <summary>
+        /// Restores missing packages for the entire solution
+        /// </summary>
+        /// <returns></returns>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<PackageRestoreResult> RestoreMissingPackagesInSolutionAsync(
+            string solutionDirectory,
+            INuGetProjectContext nuGetProjectContext,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return RestoreMissingPackagesInSolutionAsync(solutionDirectory, nuGetProjectContext, logger, NullProtocolDiagnostics.Instance, token);
         }
 
         /// <summary>
@@ -225,6 +254,7 @@ namespace NuGet.PackageManagement
             string solutionDirectory,
             INuGetProjectContext nuGetProjectContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             var packageReferencesDictionary = await GetPackagesReferencesDictionaryAsync(token);
@@ -252,14 +282,26 @@ namespace NuGet.PackageManagement
                     nuGetProjectContext,
                     downloadContext,
                     logger,
+                    protocolDiagnostics,
                     token);
             }
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<PackageRestoreResult> RestoreMissingPackagesAsync(string solutionDirectory,
+            IEnumerable<PackageRestoreData> packages,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            CancellationToken token)
+        {
+            return RestoreMissingPackagesAsync(solutionDirectory, packages, nuGetProjectContext, downloadContext, NullProtocolDiagnostics.Instance, token);
         }
 
         public virtual Task<PackageRestoreResult> RestoreMissingPackagesAsync(string solutionDirectory,
             IEnumerable<PackageRestoreData> packages,
             INuGetProjectContext nuGetProjectContext,
             PackageDownloadContext downloadContext,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (packages == null)
@@ -288,7 +330,18 @@ namespace NuGet.PackageManagement
                     packageRestoreContext.Logger);
             }
 
-            return RestoreMissingPackagesAsync(packageRestoreContext, nuGetProjectContext, downloadContext);
+            return RestoreMissingPackagesAsync(packageRestoreContext, nuGetProjectContext, downloadContext, protocolDiagnostics);
+        }
+
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public virtual Task<PackageRestoreResult> RestoreMissingPackagesAsync(string solutionDirectory,
+            IEnumerable<PackageRestoreData> packages,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            ILogger logger,
+            CancellationToken token)
+        {
+            return RestoreMissingPackagesAsync(solutionDirectory, packages, nuGetProjectContext, downloadContext, logger, NullProtocolDiagnostics.Instance, token);
         }
 
         public virtual Task<PackageRestoreResult> RestoreMissingPackagesAsync(string solutionDirectory,
@@ -296,6 +349,7 @@ namespace NuGet.PackageManagement
             INuGetProjectContext nuGetProjectContext,
             PackageDownloadContext downloadContext,
             ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             if (packages == null)
@@ -324,7 +378,7 @@ namespace NuGet.PackageManagement
                     packageRestoreContext.Logger);
             }
 
-            return RestoreMissingPackagesAsync(packageRestoreContext, nuGetProjectContext, downloadContext);
+            return RestoreMissingPackagesAsync(packageRestoreContext, nuGetProjectContext, downloadContext, protocolDiagnostics);
         }
 
         private NuGetPackageManager GetNuGetPackageManager(string solutionDirectory)
@@ -347,10 +401,31 @@ namespace NuGet.PackageManagement
         /// but just the NuGetPackageManager using constructor that does not need the SolutionManager, and, optionally
         /// register to events and/or specify the source repositories
         /// </remarks>
-        public static async Task<PackageRestoreResult> RestoreMissingPackagesAsync(
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task<PackageRestoreResult> RestoreMissingPackagesAsync(
             PackageRestoreContext packageRestoreContext,
             INuGetProjectContext nuGetProjectContext,
             PackageDownloadContext downloadContext)
+        {
+            return RestoreMissingPackagesAsync(packageRestoreContext, nuGetProjectContext, downloadContext, NullProtocolDiagnostics.Instance);
+        }
+
+        /// <summary>
+        /// The static method which takes in all the possible parameters
+        /// </summary>
+        /// <returns>Returns true if at least one of the packages needed to be restored and got restored</returns>
+        /// <remarks>
+        /// Best use case is 'nuget.exe restore .sln' where there is no project loaded and there is no SolutionManager.
+        /// The references are obtained by parsing of solution file and by using PackagesConfigReader. In this case,
+        /// you don't construct an object of PackageRestoreManager,
+        /// but just the NuGetPackageManager using constructor that does not need the SolutionManager, and, optionally
+        /// register to events and/or specify the source repositories
+        /// </remarks>
+        public static async Task<PackageRestoreResult> RestoreMissingPackagesAsync(
+            PackageRestoreContext packageRestoreContext,
+            INuGetProjectContext nuGetProjectContext,
+            PackageDownloadContext downloadContext,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             if (packageRestoreContext == null)
             {
@@ -383,7 +458,8 @@ namespace NuGet.PackageManagement
                 hashSetOfMissingPackageReferences,
                 packageRestoreContext,
                 nuGetProjectContext,
-                downloadContext);
+                downloadContext,
+                protocolDiagnostics);
 
             packageRestoreContext.Token.ThrowIfCancellationRequested();
 
@@ -411,7 +487,8 @@ namespace NuGet.PackageManagement
             HashSet<PackageReference> packageReferences,
             PackageRestoreContext packageRestoreContext,
             INuGetProjectContext nuGetProjectContext,
-            PackageDownloadContext downloadContext)
+            PackageDownloadContext downloadContext,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             var packageReferencesQueue = new ConcurrentQueue<PackageReference>(packageReferences);
             var tasks = new List<Task<List<AttemptedPackage>>>();
@@ -421,7 +498,8 @@ namespace NuGet.PackageManagement
                     packageReferencesQueue,
                     packageRestoreContext,
                     nuGetProjectContext,
-                    downloadContext)));
+                    downloadContext,
+                    protocolDiagnostics)));
             }
 
             return (await Task.WhenAll(tasks)).SelectMany(package => package);
@@ -436,7 +514,8 @@ namespace NuGet.PackageManagement
             ConcurrentQueue<PackageReference> packageReferencesQueue,
             PackageRestoreContext packageRestoreContext,
             INuGetProjectContext nuGetProjectContext,
-            PackageDownloadContext downloadContext)
+            PackageDownloadContext downloadContext,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             PackageReference currentPackageReference = null;
 
@@ -448,7 +527,8 @@ namespace NuGet.PackageManagement
                     currentPackageReference,
                     packageRestoreContext,
                     nuGetProjectContext,
-                    downloadContext);
+                    downloadContext,
+                    protocolDiagnostics);
 
                 attemptedPackages.Add(attemptedPackage);
             }
@@ -484,7 +564,8 @@ namespace NuGet.PackageManagement
             PackageReference packageReference,
             PackageRestoreContext packageRestoreContext,
             INuGetProjectContext nuGetProjectContext,
-            PackageDownloadContext downloadContext)
+            PackageDownloadContext downloadContext,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             Exception exception = null;
             var restored = false;
@@ -495,6 +576,7 @@ namespace NuGet.PackageManagement
                     nuGetProjectContext,
                     downloadContext,
                     packageRestoreContext.SourceRepositories,
+                    protocolDiagnostics,
                     packageRestoreContext.Token);
             }
             catch (Exception ex)

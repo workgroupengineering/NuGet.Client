@@ -53,6 +53,7 @@ namespace NuGet.Commands
 
         public LocalPackageFileCache PackageFileCache { get; }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public static RestoreCommandProviders Create(
             string globalFolderPath,
             IEnumerable<string> fallbackPackageFolderPaths,
@@ -60,6 +61,18 @@ namespace NuGet.Commands
             SourceCacheContext cacheContext,
             LocalPackageFileCache packageFileCache,
             ILogger log)
+        {
+            return Create(globalFolderPath, fallbackPackageFolderPaths, sources, cacheContext, packageFileCache, log, NullProtocolDiagnostics.Instance);
+        }
+
+        public static RestoreCommandProviders Create(
+            string globalFolderPath,
+            IEnumerable<string> fallbackPackageFolderPaths,
+            IEnumerable<SourceRepository> sources,
+            SourceCacheContext cacheContext,
+            LocalPackageFileCache packageFileCache,
+            ILogger log,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             var isFallbackFolder = false;
             var globalPackages = new NuGetv3LocalRepository(globalFolderPath, packageFileCache, isFallbackFolder);

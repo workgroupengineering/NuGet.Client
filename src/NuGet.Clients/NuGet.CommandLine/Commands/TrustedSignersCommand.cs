@@ -55,6 +55,10 @@ namespace NuGet.CommandLine.Commands
         {
             var actionString = Arguments.FirstOrDefault();
 
+#pragma warning disable CS0618 // Type or member is obsolete
+            IProtocolDiagnostics protocolDiagnostics = NullProtocolDiagnostics.Instance;
+#pragma warning restore CS0618 // Type or member is obsolete
+
             TrustedSignersAction action;
             if (string.IsNullOrEmpty(actionString))
             {
@@ -93,7 +97,7 @@ namespace NuGet.CommandLine.Commands
                 TrustedSignersCommandRunner = new TrustedSignersCommandRunner(trustedSignersProvider, SourceProvider);
             }
 
-            var result = await TrustedSignersCommandRunner.ExecuteCommandAsync(trustedSignersArgs);
+            var result = await TrustedSignersCommandRunner.ExecuteCommandAsync(trustedSignersArgs, protocolDiagnostics);
 
             if (result > 0)
             {

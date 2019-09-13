@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Packaging.PackageExtraction;
 using NuGet.Packaging.Signing;
@@ -56,7 +57,9 @@ namespace NuGet.CommandLine
                 throwIfPackageExists: false,
                 extractionContext: packageExtractionContext);
 
-            await OfflineFeedUtility.AddPackageToSource(offlineFeedAddContext, CancellationToken.None);
+#pragma warning disable CS0618 // Type or member is obsolete
+            await OfflineFeedUtility.AddPackageToSource(offlineFeedAddContext, NullProtocolDiagnostics.Instance, CancellationToken.None);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NuGet.Commands;
+using NuGet.Common;
 
 namespace NuGet.CommandLine
 {
@@ -72,7 +73,10 @@ namespace NuGet.CommandLine
                     NoSymbols,
                     NoServiceEndpoint,
                     SkipDuplicate,
-                    Console);
+                    Console,
+#pragma warning disable CS0618 // Type or member is obsolete
+                    NullProtocolDiagnostics.Instance);
+#pragma warning restore CS0618 // Type or member is obsolete
             }
             catch (TaskCanceledException ex)
             {

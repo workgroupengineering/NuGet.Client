@@ -54,7 +54,13 @@ namespace NuGet.Commands
                 _request.IsLowercasePackagesDirectory);
         }
 
-        public async Task CopyPackagesToOriginalCaseAsync(IEnumerable<RestoreTargetGraph> graphs, CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task CopyPackagesToOriginalCaseAsync(IEnumerable<RestoreTargetGraph> graphs, CancellationToken token)
+        {
+            return CopyPackagesToOriginalCaseAsync(graphs, NullProtocolDiagnostics.Instance, token);
+        }
+
+        public async Task CopyPackagesToOriginalCaseAsync(IEnumerable<RestoreTargetGraph> graphs, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             // Keep track of the packages we've already converted to original case.
             var converted = new HashSet<PackageIdentity>();
@@ -92,6 +98,7 @@ namespace NuGet.Commands
                             packageIdentity,
                             _request.CacheContext,
                             _request.Log,
+                            protocolDiagnostics,
                             token);
                     }
                     else
@@ -111,6 +118,7 @@ namespace NuGet.Commands
                             packageDependency,
                             versionFolderPathResolver,
                             originalCaseContext,
+                            protocolDiagnostics,
                             token,
                             ParentId);
 

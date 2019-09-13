@@ -218,7 +218,10 @@ namespace NuGet.CommandLine
                 var result = await PackageRestoreManager.RestoreMissingPackagesAsync(
                     packageRestoreContext,
                     projectContext,
-                    downloadContext);
+                    downloadContext,
+#pragma warning disable CS0618 // Type or member is obsolete
+                    NullProtocolDiagnostics.Instance);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (downloadContext.DirectDownload)
                 {
@@ -332,6 +335,9 @@ namespace NuGet.CommandLine
                         resolutionContext,
                         primaryRepositories,
                         Console,
+#pragma warning disable CS0618 // Type or member is obsolete
+                        NullProtocolDiagnostics.Instance,
+#pragma warning restore CS0618 // Type or member is obsolete
                         CancellationToken.None);
 
                     if (resolvePackage == null || resolvePackage.LatestVersion == null)
@@ -406,6 +412,9 @@ namespace NuGet.CommandLine
                         downloadContext,
                         primaryRepositories,
                         Enumerable.Empty<SourceRepository>(),
+#pragma warning disable CS0618 // Type or member is obsolete
+                        NullProtocolDiagnostics.Instance,
+#pragma warning restore CS0618 // Type or member is obsolete
                         CancellationToken.None);
 
                     if (downloadContext.DirectDownload)

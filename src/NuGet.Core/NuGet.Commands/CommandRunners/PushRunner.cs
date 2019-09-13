@@ -14,7 +14,8 @@ namespace NuGet.Commands
     /// </summary>
     public static class PushRunner
     {
-        public static async Task Run(
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public static Task Run(
             ISettings settings,
             IPackageSourceProvider sourceProvider,
             string packagePath,
@@ -29,6 +30,38 @@ namespace NuGet.Commands
             bool skipDuplicate,
             ILogger logger)
         {
+            return Run(settings,
+                sourceProvider,
+                packagePath,
+                source,
+                apiKey,
+                symbolSource,
+                symbolApiKey,
+                timeoutSeconds,
+                disableBuffering,
+                noSymbols,
+                noServiceEndpoint,
+                skipDuplicate,
+                logger,
+                NullProtocolDiagnostics.Instance);
+        }
+
+        public static async Task Run(
+            ISettings settings,
+            IPackageSourceProvider sourceProvider,
+            string packagePath,
+            string source,
+            string apiKey,
+            string symbolSource,
+            string symbolApiKey,
+            int timeoutSeconds,
+            bool disableBuffering,
+            bool noSymbols,
+            bool noServiceEndpoint,
+            bool skipDuplicate,
+            ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics)
+        {
             source = CommandRunnerUtility.ResolveSource(sourceProvider, source);
             symbolSource = CommandRunnerUtility.ResolveSymbolSource(sourceProvider, symbolSource);
 
@@ -37,7 +70,7 @@ namespace NuGet.Commands
                 timeoutSeconds = 5 * 60;
             }
 
-            var packageUpdateResource = await CommandRunnerUtility.GetPackageUpdateResource(sourceProvider, source);
+            var packageUpdateResource = await CommandRunnerUtility.GetPackageUpdateResource(sourceProvider, source, protocolDiagnostics);
             packageUpdateResource.Settings = settings;
             SymbolPackageUpdateResourceV3 symbolPackageUpdateResource = null;
 
@@ -48,7 +81,7 @@ namespace NuGet.Commands
                 && !sourceUri.IsFile
                 && sourceUri.IsAbsoluteUri)
             {
-                symbolPackageUpdateResource = await CommandRunnerUtility.GetSymbolPackageUpdateResource(sourceProvider, source);
+                symbolPackageUpdateResource = await CommandRunnerUtility.GetSymbolPackageUpdateResource(sourceProvider, source, protocolDiagnostics);
                 if (symbolPackageUpdateResource != null)
                 {
                     symbolSource = symbolPackageUpdateResource.SourceUri.AbsoluteUri;
@@ -66,7 +99,8 @@ namespace NuGet.Commands
                 noServiceEndpoint,
                 skipDuplicate,
                 symbolPackageUpdateResource,
-                logger);
+                logger,
+                protocolDiagnostics);
         }
     }
 }

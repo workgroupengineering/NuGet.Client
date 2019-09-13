@@ -66,11 +66,40 @@ namespace NuGet.DependencyResolver
         /// is either <c>null</c> or empty.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="targetFramework" />
         /// is either <c>null</c> or empty.</exception>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<LibraryIdentity> FindLibraryAsync(
             LibraryRange libraryRange,
             NuGetFramework targetFramework,
             SourceCacheContext cacheContext,
             ILogger logger,
+            CancellationToken cancellationToken)
+        {
+            return FindLibraryAsync(libraryRange, targetFramework, cacheContext, logger, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously discovers all versions of a package from a source and selects the best match.
+        /// </summary>
+        /// <remarks>This does not download the package.</remarks>
+        /// <param name="libraryRange">A library range.</param>
+        /// <param name="targetFramework">A target framework.</param>
+        /// <param name="cacheContext">A source cache context.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="LibraryIdentity" />
+        /// instance.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="libraryRange" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="targetFramework" />
+        /// is either <c>null</c> or empty.</exception>
+        public Task<LibraryIdentity> FindLibraryAsync(
+            LibraryRange libraryRange,
+            NuGetFramework targetFramework,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (libraryRange == null)
@@ -108,11 +137,38 @@ namespace NuGet.DependencyResolver
         /// is either <c>null</c> or empty.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="targetFramework" />
         /// is either <c>null</c> or empty.</exception>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<LibraryDependencyInfo> GetDependenciesAsync(
             LibraryIdentity libraryIdentity,
             NuGetFramework targetFramework,
             SourceCacheContext cacheContext,
             ILogger logger,
+            CancellationToken cancellationToken)
+        {
+            return GetDependenciesAsync(libraryIdentity, targetFramework, cacheContext, logger, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously gets package dependencies.
+        /// </summary>
+        /// <param name="libraryIdentity">A library identity.</param>
+        /// <param name="targetFramework">A target framework.</param>
+        /// <param name="cacheContext">A source cache context.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="LibraryDependencyInfo" />
+        /// instance.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="libraryIdentity" />
+        /// is either <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="targetFramework" />
+        /// is either <c>null</c> or empty.</exception>
+        public Task<LibraryDependencyInfo> GetDependenciesAsync(LibraryIdentity libraryIdentity,
+            NuGetFramework targetFramework,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken cancellationToken)
         {
             if (libraryIdentity == null)
@@ -146,23 +202,54 @@ namespace NuGet.DependencyResolver
         /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="IPackageDownloader" />
         /// instance.</returns>
         /// <exception cref="NotSupportedException">Thrown always.</exception>
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<IPackageDownloader> GetPackageDownloaderAsync(
             PackageIdentity packageIdentity,
             SourceCacheContext cacheContext,
             ILogger logger,
             CancellationToken cancellationToken)
         {
+            return GetPackageDownloaderAsync(packageIdentity, cacheContext, logger, NullProtocolDiagnostics.Instance, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously gets a package downloader.
+        /// </summary>
+        /// <param name="packageIdentity">A package identity.</param>
+        /// <param name="cacheContext">A source cache context.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="protocolDiagnostics">Protocol diagnostics logger.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="IPackageDownloader" />
+        /// instance.</returns>
+        /// <exception cref="NotSupportedException">Thrown always.</exception>
+        public Task<IPackageDownloader> GetPackageDownloaderAsync(PackageIdentity packageIdentity,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
+            CancellationToken cancellationToken)
+        {
             throw new NotSupportedException();
         }
 
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
         public Task<IEnumerable<NuGetVersion>> GetAllVersionsAsync(
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
             CancellationToken token)
         {
-            throw new NotImplementedException();
+            return GetAllVersionsAsync(id, cacheContext, logger, NullProtocolDiagnostics.Instance, token);
         }
 
+        public Task<IEnumerable<NuGetVersion>> GetAllVersionsAsync(string id,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            IProtocolDiagnostics protocolDiagnostics,
+            CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

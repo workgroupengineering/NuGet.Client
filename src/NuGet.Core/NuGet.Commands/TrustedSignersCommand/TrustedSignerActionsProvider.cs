@@ -39,7 +39,19 @@ namespace NuGet.Commands
         /// <param name="name">Name of the repository item to refresh.</param>
         /// <param name="token">Cancellation token</param>
         /// <exception cref="InvalidOperationException">When a repository item with the given name is not found.</exception>
-        public async Task SyncTrustedRepositoryAsync(string name, CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task SyncTrustedRepositoryAsync(string name, CancellationToken token)
+        {
+            return SyncTrustedRepositoryAsync(name, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Refresh the certificates of a repository item with the ones the server is announcing.
+        /// </summary>
+        /// <param name="name">Name of the repository item to refresh.</param>
+        /// <param name="token">Cancellation token</param>
+        /// <exception cref="InvalidOperationException">When a repository item with the given name is not found.</exception>
+        public async Task SyncTrustedRepositoryAsync(string name, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -51,7 +63,7 @@ namespace NuGet.Commands
             {
                 if (string.Equals(existingRepository.Name, name, StringComparison.Ordinal))
                 {
-                    var certificateItems = await GetCertificateItemsFromServiceIndexAsync(existingRepository.ServiceIndex, token);
+                    var certificateItems = await GetCertificateItemsFromServiceIndexAsync(existingRepository.ServiceIndex, protocolDiagnostics, token);
 
                     existingRepository.Certificates.Clear();
                     existingRepository.Certificates.AddRange(certificateItems);
@@ -218,7 +230,20 @@ namespace NuGet.Commands
         /// <param name="serviceIndex">Service index of the trusted repository. Trusted certificates information will be gotten from here.</param>
         /// <param name="owners">Owners to be trusted from the repository.</param>
         /// <param name="token">Cancellation token</param>
-        public async Task AddTrustedRepositoryAsync(string name, Uri serviceIndex, IEnumerable<string> owners, CancellationToken token)
+        [Obsolete("Use the overload with " + nameof(IProtocolDiagnostics) + ". Use " + nameof(NullProtocolDiagnostics) + " if no diagnostics are needed")]
+        public Task AddTrustedRepositoryAsync(string name, Uri serviceIndex, IEnumerable<string> owners, CancellationToken token)
+        {
+            return AddTrustedRepositoryAsync(name, serviceIndex, owners, NullProtocolDiagnostics.Instance, token);
+        }
+
+        /// <summary>
+        /// Adds a trusted repository with information from <paramref name="serviceIndex"/>
+        /// </summary>
+        /// <param name="name">Name of the trusted repository.</param>
+        /// <param name="serviceIndex">Service index of the trusted repository. Trusted certificates information will be gotten from here.</param>
+        /// <param name="owners">Owners to be trusted from the repository.</param>
+        /// <param name="token">Cancellation token</param>
+        public async Task AddTrustedRepositoryAsync(string name, Uri serviceIndex, IEnumerable<string> owners, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -232,7 +257,7 @@ namespace NuGet.Commands
 
             ValidateNoExistingSigner(name, serviceIndex.AbsoluteUri);
 
-            var certificateItems = await GetCertificateItemsFromServiceIndexAsync(serviceIndex.AbsoluteUri, token);
+            var certificateItems = await GetCertificateItemsFromServiceIndexAsync(serviceIndex.AbsoluteUri, protocolDiagnostics, token);
 
             _trustedSignersProvider.AddOrUpdateTrustedSigner(
                 new RepositoryItem(name, serviceIndex.AbsoluteUri, CreateOwnersList(owners), certificateItems));
@@ -267,7 +292,7 @@ namespace NuGet.Commands
         }
 #endif
 
-        private async Task<CertificateItem[]> GetCertificateItemsFromServiceIndexAsync(string serviceIndex, CancellationToken token)
+        private async Task<CertificateItem[]> GetCertificateItemsFromServiceIndexAsync(string serviceIndex, IProtocolDiagnostics protocolDiagnostics, CancellationToken token)
         {
             if (string.IsNullOrEmpty(serviceIndex))
             {
@@ -280,7 +305,7 @@ namespace NuGet.Commands
                 ServiceIndexSourceRepository = new SourceRepository(packageSource, Repository.Provider.GetCoreV3());
             }
 
-            var repositorySignatureResource = await ServiceIndexSourceRepository.GetResourceAsync<RepositorySignatureResource>(token);
+            var repositorySignatureResource = await ServiceIndexSourceRepository.GetResourceAsync<RepositorySignatureResource>(protocolDiagnostics, token);
 
             if (repositorySignatureResource == null)
             {

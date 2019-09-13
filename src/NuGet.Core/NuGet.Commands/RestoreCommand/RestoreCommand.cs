@@ -101,6 +101,9 @@ namespace NuGet.Commands
             using (var telemetry = TelemetryActivity.CreateTelemetryActivityWithNewOperationIdAndEvent(parentId: ParentId, eventName: ProjectRestoreInformation))
             {
                 _operationId = telemetry.OperationId;
+#pragma warning disable CS0618 // Type or member is obsolete
+                var protocolDiagnostics = TelemetryActivity.NuGetTelemetryService?.CreateProtocolDiagnostics(telemetry) ?? NullProtocolDiagnostics.Instance;
+#pragma warning restore CS0618 // Type or member is obsolete
                 var restoreTime = Stopwatch.StartNew();
 
                 // Local package folders (non-sources)
@@ -221,7 +224,8 @@ namespace NuGet.Commands
                     _request.DependencyProviders.FallbackPackageFolders,
                     contextForProject,
                     token,
-                    restoreGraphTelemetry);
+                    restoreGraphTelemetry,
+                    protocolDiagnostics);
                 }
 
                 LockFile assetsFile = null;
@@ -294,7 +298,7 @@ namespace NuGet.Commands
                     DowngradeLockFileIfNeeded(assetsFile);
 
                     // Revert to the original case if needed
-                    await FixCaseForLegacyReaders(graphs, assetsFile, token);
+                    await FixCaseForLegacyReaders(graphs, assetsFile, protocolDiagnostics, token);
 
                     // if lock file was still valid then validate package's sha512 hash or else write
                     // the file if enabled.
@@ -627,6 +631,7 @@ namespace NuGet.Commands
         private async Task FixCaseForLegacyReaders(
             IEnumerable<RestoreTargetGraph> graphs,
             LockFile lockFile,
+            IProtocolDiagnostics protocolDiagnostics,
             CancellationToken token)
         {
             // The main restore operation restores packages with lowercase ID and version. If the
@@ -637,7 +642,7 @@ namespace NuGet.Commands
                 var originalCase = new OriginalCaseGlobalPackageFolder(_request, _operationId);
 
                 // Convert the case of all the packages used in the project restore
-                await originalCase.CopyPackagesToOriginalCaseAsync(graphs, token);
+                await originalCase.CopyPackagesToOriginalCaseAsync(graphs, protocolDiagnostics, token);
 
                 // Convert the project lock file contents.
                 originalCase.ConvertLockFileToOriginalCase(lockFile);
@@ -848,7 +853,8 @@ namespace NuGet.Commands
             IReadOnlyList<NuGetv3LocalRepository> fallbackPackageFolders,
             RemoteWalkContext context,
             CancellationToken token,
-            TelemetryActivity telemetryActivity)
+            TelemetryActivity telemetryActivity,
+            IProtocolDiagnostics protocolDiagnostics)
         {
             if (_request.Project.TargetFrameworks.Count == 0)
             {
@@ -911,7 +917,8 @@ namespace NuGet.Commands
                     context,
                     forceRuntimeGraphCreation: hasSupports,
                     token: token,
-                    telemetryActivity: tryRestoreTelemetry);
+                    telemetryActivity: tryRestoreTelemetry,
+                    protocolDiagnostics);
             }
 
             var success = result.Item1;
@@ -960,7 +967,8 @@ namespace NuGet.Commands
                     context,
                     forceRuntimeGraphCreation: true,
                     token: token,
-                    telemetryActivity: runtimeTryRestoreTelemetry);
+                    telemetryActivity: runtimeTryRestoreTelemetry,
+                    protocolDiagnostics);
 
                 }
 
